@@ -167,7 +167,7 @@ int main (int argc, char * argv[]) {
     if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    
+    // exit(0);   
     /* Standard non-interference */
     probes = Silver::check_NI(model, inputs, order, false);
 

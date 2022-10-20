@@ -93,16 +93,19 @@ Silver::elaborate(Circuit &model) {
     boost::topological_sort(model, std::back_inserter(sorted));
 
     for (auto node = sorted.rbegin(); node != sorted.rend(); ++node) {
-
         if (unary.find(model[*node].getType()) != unary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
+            // printf("%ld %s %ld\n", *node, model[*node].getType(), op1);
+            std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
         } else if (binary.find(model[*node].getType()) != binary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
             op2 = source(*(in_edges(*node, model).first+1), model);
+            std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
+            // printf("%ld %s %ld %ld\n", *node, model[*node].getType(), op1, op2);
         } else if (!(model[*node].getType() == "in" || model[*node].getType() == "ref")) {
+            printf("%ld\n", *node);
             std::cerr << "ERR1: Unsupported node detected. (ELABORATE)" << std::endl;
         }
-
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
             model[*node].setFunction(sylvan_ithvar(*node));
@@ -266,7 +269,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
     for (auto node = vertices(model).first; node != vertices(model).second; node++)
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
 
-    for (int order = 0; order < probingOrder; order++) {
+    for (int order = 1; order < probingOrder; order++) {
         std::vector<Node> probes(order + 1);
         std::vector<bool> bitmask(positions.size()); std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
         do {
@@ -274,30 +277,54 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
 
             if (robustModel) {
                 Bdd observation = model[probes[0]].getRegisters();
+                printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
+                {
                     observation &= model[probes[probe]].getRegisters();
+                    printf("%d ", probes[probe]);
+                }
+                printf("\n");
+                printf("the size of secrets is %d\n", secrets.size());
 
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
-
-                for (int comb = 1; comb < (1 << extended.size()); comb++) {
+                for (int i = 0; i < extended.size(); i++){
+                    printf("%d\n", extended[i]);
+                }
+                printf("the size of extended is %d\n", extended.size());
+                printf("so comb is of size %d\n", 1 << extended.size());
+                for (int comb = 295000; comb < (1 << extended.size()); comb++) {
+                    // printf("\tcomb = %d\n", comb);
                     observation = sylvan::sylvan_true;
                     for (int elem = 0; elem < extended.size(); elem++)
                         if (comb & (1 << elem)) observation &= model[extended[elem]].getFunction();
 
+                    // printf("\tthe size of secrets is %d\n", secrets.size());
                     bool independent = true;
-                    for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
+                    for (int idx = 0; idx < secrets.size() && independent; idx++) {
+                        // printf("\t\tidx = %d\n", idx);
+                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
+                        if(!independent)
+                            printf("idx = %d\n", idx);
+                    }
                     //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
-                    if (!independent) return probes;
+                    if (!independent) {
+                        printf("independent: comb = %d \n", comb);
+                        return probes;
+                    }
                 }
+                printf("\n");
             } else {
-                Bdd observation = model[probes[0]].getFunction();
-                for (int probe = 1; probe < probes.size(); probe++)
-                    observation &= model[probes[probe]].getFunction();
+                // Probes[0] = 627;
+                Bdd observation = model[627].getFunction();
+                // for (int probe = 1; probe < probes.size(); probe++)
+                //     observation &= model[probes[probe]].getFunction();
 
                 bool independent = true;
                 for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
                 //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                 if (!independent) return probes;
+                else printf("independent\n");
+                return probes;
             }
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
     }

@@ -1,0 +1,9 @@
+[     0.000] Parsing verilog design /home/lucien/Desktop/silver/SubByte_Unit.v with top module SubByte_Unit
+0 unconnected cell(s) removed
+0 Buffer(s) removed and 0 signal(s) rerouted
+[     0.134] Netlist: test/SubByte_Unit.nl
+[     0.185] Parse: 2165 gate(s) / 3846 signal(s)
+[    13.202] Elaborate: 2165 gate(s) / 3846 signal(s)
+[    15.426] probing.standard (d ≤ 1) -- PASS.	>> Probes: <in:line16,in:line8>
+[    17.144] probing.robust   (d ≤ 1) -- PASS.	>> Probes: <in:line16,in:line8>
+

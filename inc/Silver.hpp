@@ -51,6 +51,7 @@
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, NodeContext> Circuit;
 typedef boost::graph_traits<Circuit>::vertex_descriptor Node;
 typedef boost::graph_traits<Circuit>::edge_descriptor Wire;
+// typedef adjacency_list_traits<boost::vecS, boost::vecS, boost::bidirectionalS, NodeContext> Traits;
 
 /**
  * @brief Type definition for Probes and Boolean sharing (unshared input / shared input indices)
