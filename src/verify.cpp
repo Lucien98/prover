@@ -154,6 +154,14 @@ int main (int argc, char * argv[]) {
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
 
+    /* Robust probing security */
+    probes = Silver::check_PartialNIP(model, inputs, order, true);
+
+    if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
+    exit(0);   
+
     /* Standard probing security */
     probes = Silver::check_Probing(model, inputs, order, false);
 
@@ -167,7 +175,7 @@ int main (int argc, char * argv[]) {
     if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    // exit(0);   
+    exit(0);   
     /* Standard non-interference */
     probes = Silver::check_NI(model, inputs, order, false);
 

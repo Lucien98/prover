@@ -32,6 +32,17 @@
 using namespace boost;
 using namespace sylvan;
 
+static std::chrono::time_point<std::chrono::high_resolution_clock> start;
+
+static void INFO(const std::string info) {
+    std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
+    std::cout << "[*" << std::setw(10) << std::fixed << std::setprecision(3) << elapsed.count() << "] " << info;
+};
+
+#define str(i) std::to_string(i)
+#define time std::chrono::high_resolution_clock::now()
+
+
 /**
  * Implementation of Netlist static class functions.
  */
@@ -269,7 +280,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
     for (auto node = vertices(model).first; node != vertices(model).second; node++)
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
 
-    for (int order = 1; order < probingOrder; order++) {
+    for (int order = 0; order < probingOrder; order++) {
         std::vector<Node> probes(order + 1);
         std::vector<bool> bitmask(positions.size()); std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
         do {
@@ -292,7 +303,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 }
                 printf("the size of extended is %d\n", extended.size());
                 printf("so comb is of size %d\n", 1 << extended.size());
-                for (int comb = 295000; comb < (1 << extended.size()); comb++) {
+                for (int comb = 0; comb < (1 << extended.size()); comb++) {
                     // printf("\tcomb = %d\n", comb);
                     observation = sylvan::sylvan_true;
                     for (int elem = 0; elem < extended.size(); elem++)
@@ -314,23 +325,257 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 }
                 printf("\n");
             } else {
-                // Probes[0] = 627;
-                Bdd observation = model[627].getFunction();
+                 // = 627;
+                Bdd observation = model[probes[0]].getFunction();
+                for (int probe = 1; probe < probes.size(); probe++)
+                    observation &= model[probes[probe]].getFunction();
+                // printf(" probes are %d ", probes[0]);
                 // for (int probe = 1; probe < probes.size(); probe++)
-                //     observation &= model[probes[probe]].getFunction();
-
+                // {
+                //     // observation &= model[probes[probe]].getRegisters();
+                //     printf("%d ", probes[probe]);
+                // }
+                // printf("\n");
                 bool independent = true;
                 for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
                 //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                 if (!independent) return probes;
-                else printf("independent\n");
-                return probes;
+                // else printf("independent\n");
+                // return probes;
             }
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
     }
 
     return inputs[minimal];
 }
+
+/* Partial NI Probing security */
+std::vector<Node>
+Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)
+{
+    LACE_ME;
+
+    std::vector<long unsigned int> positions = (robustModel) ? get_nodes_of_types(model, rprobes) : get_nodes_of_types(model, sprobes);
+
+    // for (int i = 0; i < positions.size(); ++i)
+    // {
+    //     printf("%d ", positions[i]);
+    // }
+    // printf("\n");
+    // std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
+    // {
+    //     // printf("\n");
+    //     // Bdd observation = model[n1].getRegisters();
+    //     // if (std::find(positions.begin(), positions.end(), n1) == positions.end())
+    //     //     printf("what the hell\n");
+    //     // if (std::find(positions.begin(), positions.end(), n2) == positions.end())
+    //     //     printf("what the hell\n");
+    //     int len1 = BddSet(model[n1].getRegisters()).toVector().size();
+    //     // printf("%d %d ", n1, len1);
+    //     int len2 = BddSet(model[n2].getRegisters()).toVector().size();
+    //     // printf("%d %d, ", n2, len2);
+    //     if (len1 > len2)
+    //         return true;
+    //     return false;
+    // });
+    for (int i = 0; i < positions.size(); ++i)
+    {
+        printf("%d ", positions[i]);
+    }
+    int minimal = get_minimal_sharing(inputs);
+    // std::cout << "minimal = " << minimal << "\n";
+    if (probingOrder == 0 || inputs[minimal].size() < 2 || inputs[minimal].size() < probingOrder) 
+        return inputs[minimal];
+    int num_share = inputs[minimal].size();
+    std::vector<Bdd> secrets(1 << inputs.size());
+    for (int index = 0; index < inputs.size(); index++) {
+        secrets[index] = model[inputs[index][0]].getFunction();
+        for (int elem = 1; elem < inputs[index].size(); elem++) 
+            secrets[index] ^= model[inputs[index][elem]].getFunction();
+    }
+
+    for (int comb = inputs.size() + 1; comb < (1 << inputs.size()); comb++) {
+        secrets[comb-1] = Bdd::bddOne();
+        for (int elem = 0; elem < inputs.size(); elem++) 
+            if (comb & (1 << elem)) 
+                secrets[comb-1] &= secrets[elem];
+    }
+
+    int varcount = 0;
+    for (auto node = vertices(model).first; node != vertices(model).second; node++)
+        if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+    
+    std::set<uint32_t> inputs_set;
+    for (int i = 0; i < inputs.size(); i++){
+        inputs_set.insert(i);
+    }
+    std::set<uint32_t> ivar;
+    std::set<uint32_t> nivar;
+    std::set<uint32_t>::iterator pos;
+    start = std::chrono::high_resolution_clock::now();
+
+    std::vector<std::set<uint32_t>> merged_obs;
+    int num_subset = 0;
+    
+    for (int order = 0; order < probingOrder; order++) {
+        std::vector<Node> probes(order + 1);
+        std::vector<bool> bitmask(positions.size()); 
+        std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
+        do {
+            int probe = 0; 
+            for (int idx = 0; idx < bitmask.size(); idx++) 
+                if (bitmask[idx]) 
+                    probes[probe++] = positions[idx];
+
+            if (robustModel) {
+
+                // probes[0] = 1759;
+                INFO("now the");
+                Bdd observation = model[probes[0]].getRegisters();
+                printf(" probes are %d ", probes[0]);
+                for (int probe = 1; probe < probes.size(); probe++)
+                {
+                    observation &= model[probes[probe]].getRegisters();
+                    printf("%d ", probes[probe]);
+                }
+                printf("\n");
+                printf("the size of secrets is %d\n", secrets.size());
+
+                std::vector<uint32_t> extended = BddSet(observation).toVector();
+                std::set<uint32_t> set_of_extended;
+                for (int i = 0; i < extended.size(); i++){
+                    printf("%d\n", extended[i]);
+                    set_of_extended.insert(extended[i]);
+                }
+                int find_subset = 0;
+                printf("the size of extended is %d\n", extended.size());
+                if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended)!= merged_obs.end()){
+                    printf("this set has already been checked, we skip it to continue\n");
+                    continue;
+                }
+                else
+                {
+                    for (int i = 0; i < merged_obs.size(); ++i)
+                    {
+                        std::set<uint32_t> diff;
+                        std::set_difference(set_of_extended.begin(), set_of_extended.end(), merged_obs[i].begin(), merged_obs[i].end(), inserter(diff, diff.begin()));
+                        if (diff.size() == 0)
+                        {
+                            num_subset++;
+                            find_subset = 1;
+                            printf("find %d-th subset, skip it and continue\n", num_subset);
+                            break;
+                        }
+
+                    }
+                    if (find_subset == 1)
+                    {
+                        continue;  
+                    }else{
+                        merged_obs.push_back(set_of_extended);                        
+                    }
+                }
+                printf("so comb is of size %d\n", 1 << extended.size());
+                /**********************************************************/
+                observation = sylvan::sylvan_true;
+                for (int elem = 0; elem < extended.size(); elem++)
+                    observation &= model[extended[elem]].getFunction();
+                /**********************************************************/
+
+                /**********************************************************/
+                /* Add code here to generate secret which are not partial NI
+                 *
+                 */
+                // printf("partial NI Probing Verification:\n");
+                ivar.clear();
+                nivar.clear();
+                std::vector<std::vector<Node>> shares(inputs.size());
+                std::vector<uint32_t> variables = BddSet(observation.Support()).toVector();
+                for (int var = variables.size() - 1; var >= 0; var--) {
+                    for (int idx = inputs.size() - 1; idx >= 0; idx--) {
+                        if (std::find(inputs[idx].begin(), inputs[idx].end(), variables[var]) != inputs[idx].end()) {
+                            shares[idx].push_back(variables[var]); 
+                            if (shares[idx].size() == num_share){
+                                // std :: cout << idx << " ";
+                                ivar.insert(idx);
+                            }
+                        }
+                    }
+                }
+                // nivar = 
+                std::set_difference(inputs_set.begin(), inputs_set.end(), ivar.begin(), ivar.end(), std::inserter(nivar, nivar.begin()));
+                if (ivar.size() == 0) continue;
+                std::cout << "the size of interference variables is " << ivar.size() << "\n";
+                /**********************************************************/
+                std::cout << "i vars are: ";
+                for (pos = ivar.begin(); pos != ivar.end(); pos++){
+                    std::cout << *pos << " ";
+                }
+                printf("\n");
+                std::cout << "ni vars are: ";
+                for (pos = nivar.begin(); pos != nivar.end(); pos++){
+                    std::cout << *pos << " ";
+                }
+                printf("\n");
+                // printf("combinations are \n");
+                std::vector<uint32_t> ivar_comb;
+                for (int comb = 0; comb < (1 << ivar.size()); comb++){
+                    int ivar_comb_elem = 0;
+                    pos = ivar.begin();
+                    for (int elem = 0; elem < ivar.size(); elem++, pos++){
+                        if (comb & (1 << elem))
+                            ivar_comb_elem ^= (1 << *pos);
+                    }
+                    ivar_comb.push_back(ivar_comb_elem); 
+                    // printf("%d ", ivar_comb_elem);   
+                }
+                printf("\n");
+                for (int comb = 0; comb < (1 << extended.size()); comb++) {
+                    // printf("\tcomb = %d\n", comb);
+                    observation = sylvan::sylvan_true;
+                    for (int elem = 0; elem < extended.size(); elem++)
+                        if (comb & (1 << elem)) observation &= model[extended[elem]].getFunction();
+
+                    // printf("\tthe size of secrets is %d\n", secrets.size());
+                    bool independent = true;
+
+                    for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
+                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[ivar_comb[idx]].GetBDD(), varcount);
+                        if(!independent)
+                            printf("idx = %d\n", idx);
+                    }
+                    //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
+                    if (!independent) {
+                        printf("independent: comb = %d \n", comb);
+                        return probes;
+                    }
+                }
+                printf("\n");
+            } else {
+                 // = 627;
+                Bdd observation = model[probes[0]].getFunction();
+                for (int probe = 1; probe < probes.size(); probe++)
+                    observation &= model[probes[probe]].getFunction();
+                // printf(" probes are %d ", probes[0]);
+                // for (int probe = 1; probe < probes.size(); probe++)
+                // {
+                //     // observation &= model[probes[probe]].getRegisters();
+                //     printf("%d ", probes[probe]);
+                // }
+                // printf("\n");
+                bool independent = true;
+                for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
+                //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
+                if (!independent) return probes;
+                // else printf("independent\n");
+                // return probes;
+            }
+        } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+    }
+
+    return inputs[minimal];
+}
+
 
 /* Non-interference */
 std::vector<Node>
@@ -423,10 +668,18 @@ Silver::check_NI(Circuit &model, std::map<int, Probes> inputs, const int probing
                     }
                 }
             } else {
+                /*
+                 * observation is a Bdd
+                 */
                 Bdd observation = model[probes[0]].getFunction();
                 for (int probe = 1; probe < probes.size(); probe++) observation &= model[probes[probe]].getFunction();
 
                 bool trivial_solution = true;
+                /*
+                 * shares are the vector of node vector, the element node vector contains the shared 
+                 * variables of the i-th secret
+                 * variables are the ids of Bdd id
+                 */
                 std::vector<std::vector<Node>> shares(inputs.size());
                 std::vector<uint32_t> variables = BddSet(observation.Support()).toVector();
                 for (int var = variables.size() - 1; var >= 0; var--) {
