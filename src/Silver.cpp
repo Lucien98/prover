@@ -64,7 +64,6 @@ Silver::parse(const std::string filePath)
         Node node = add_vertex(model);
 
         model[node].setType(tokens[0]);
-
         if (unary.find(tokens[0]) != unary.end()) {
             add_edge(std::stoi(tokens[1]), node, model);
         } else if (binary.find(tokens[0]) != binary.end()) {
@@ -106,12 +105,13 @@ Silver::elaborate(Circuit &model) {
     for (auto node = sorted.rbegin(); node != sorted.rend(); ++node) {
         if (unary.find(model[*node].getType()) != unary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
+            // model[*node].setLeftChild(&model[op1]);
             // printf("%ld %s %ld\n", *node, model[*node].getType(), op1);
-            std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
+            // std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
         } else if (binary.find(model[*node].getType()) != binary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
             op2 = source(*(in_edges(*node, model).first+1), model);
-            std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
+            // std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
             // printf("%ld %s %ld %ld\n", *node, model[*node].getType(), op1, op2);
         } else if (!(model[*node].getType() == "in" || model[*node].getType() == "ref")) {
             printf("%ld\n", *node);
@@ -142,6 +142,8 @@ Silver::elaborate(Circuit &model) {
             std::cerr << "ERR2: Unsupported node detected. (ELABORATE)" << std::endl;
         }
 
+        // model[*node].getAuxiliaryTable();
+        
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
             model[*node].addVariables(Bdd::bddVar(*node));
@@ -155,6 +157,7 @@ Silver::elaborate(Circuit &model) {
         } else {
             std::cerr << "ERR: Unsupported node detected. (ELABORATE)" << std::endl;
         }
+        /**/
 
         model[*node].clearRegisters();
         if (model[*node].getType() == "in") {
@@ -279,6 +282,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
     int varcount = 0;
     for (auto node = vertices(model).first; node != vertices(model).second; node++)
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+    start = std::chrono::high_resolution_clock::now();
 
     for (int order = 0; order < probingOrder; order++) {
         std::vector<Node> probes(order + 1);
@@ -287,6 +291,8 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
             int probe = 0; for (int idx = 0; idx < bitmask.size(); idx++) if (bitmask[idx]) probes[probe++] = positions[idx];
 
             if (robustModel) {
+                INFO("now the");
+                probes[0] = 916;
                 Bdd observation = model[probes[0]].getRegisters();
                 printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
@@ -303,12 +309,16 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 }
                 printf("the size of extended is %d\n", extended.size());
                 printf("so comb is of size %d\n", 1 << extended.size());
-                for (int comb = 0; comb < (1 << extended.size()); comb++) {
+                for (int comb = (1 << extended.size()) - 1; comb > 0 ; comb--) {
                     // printf("\tcomb = %d\n", comb);
                     observation = sylvan::sylvan_true;
-                    for (int elem = 0; elem < extended.size(); elem++)
-                        if (comb & (1 << elem)) observation &= model[extended[elem]].getFunction();
-
+                    for (int elem = extended.size() - 1; elem >= 0 ; elem--){
+                        if (comb & (1 << elem)) {
+                            INFO("\t\tanding " + str(extended[elem]) + "...\n");
+                            observation &= model[extended[elem]].getFunction();
+                        }
+                    }
+                    INFO("\tcomb is " + str(comb) + "\n");
                     // printf("\tthe size of secrets is %d\n", secrets.size());
                     bool independent = true;
                     for (int idx = 0; idx < secrets.size() && independent; idx++) {
@@ -362,45 +372,51 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
     //     printf("%d ", positions[i]);
     // }
     // printf("\n");
-    // std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
-    // {
-    //     // printf("\n");
-    //     // Bdd observation = model[n1].getRegisters();
-    //     // if (std::find(positions.begin(), positions.end(), n1) == positions.end())
-    //     //     printf("what the hell\n");
-    //     // if (std::find(positions.begin(), positions.end(), n2) == positions.end())
-    //     //     printf("what the hell\n");
-    //     int len1 = BddSet(model[n1].getRegisters()).toVector().size();
-    //     // printf("%d %d ", n1, len1);
-    //     int len2 = BddSet(model[n2].getRegisters()).toVector().size();
-    //     // printf("%d %d, ", n2, len2);
-    //     if (len1 > len2)
-    //         return true;
-    //     return false;
-    // });
+    std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
+    {
+        // printf("\n");
+        // Bdd observation = model[n1].getRegisters();
+        // if (std::find(positions.begin(), positions.end(), n1) == positions.end())
+        //     printf("what the hell\n");
+        // if (std::find(positions.begin(), positions.end(), n2) == positions.end())
+        //     printf("what the hell\n");
+        int len1 = BddSet(model[n1].getRegisters()).toVector().size();
+        // printf("%d %d ", n1, len1);
+        int len2 = BddSet(model[n2].getRegisters()).toVector().size();
+        // printf("%d %d, ", n2, len2);
+        if (len1 > len2)
+            return true;
+        return false;
+    });
     for (int i = 0; i < positions.size(); ++i)
     {
         printf("%d ", positions[i]);
     }
+    printf("\n");
+
     int minimal = get_minimal_sharing(inputs);
     // std::cout << "minimal = " << minimal << "\n";
     if (probingOrder == 0 || inputs[minimal].size() < 2 || inputs[minimal].size() < probingOrder) 
         return inputs[minimal];
     int num_share = inputs[minimal].size();
+    std::map<uint32_t, uint32_t> comb_to_secret;
     std::vector<Bdd> secrets(1 << inputs.size());
     for (int index = 0; index < inputs.size(); index++) {
         secrets[index] = model[inputs[index][0]].getFunction();
         for (int elem = 1; elem < inputs[index].size(); elem++) 
             secrets[index] ^= model[inputs[index][elem]].getFunction();
+        comb_to_secret.insert({index, index});
     }
 
+    /*
     for (int comb = inputs.size() + 1; comb < (1 << inputs.size()); comb++) {
         secrets[comb-1] = Bdd::bddOne();
         for (int elem = 0; elem < inputs.size(); elem++) 
             if (comb & (1 << elem)) 
-                secrets[comb-1] &= secrets[elem];
+                secrets[comb-1] &= secrets[1 << elem];
     }
-
+    */
+    int curr_secret_id = inputs.size(); //secrets.size();
     int varcount = 0;
     for (auto node = vertices(model).first; node != vertices(model).second; node++)
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
@@ -422,14 +438,14 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
         std::vector<bool> bitmask(positions.size()); 
         std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
         do {
-            int probe = 0; 
+            int probe = 0;  
             for (int idx = 0; idx < bitmask.size(); idx++) 
                 if (bitmask[idx]) 
                     probes[probe++] = positions[idx];
 
             if (robustModel) {
 
-                // probes[0] = 1759;
+                probes[0] = 1820;
                 INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
                 printf(" probes are %d ", probes[0]);
@@ -504,7 +520,10 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 }
                 // nivar = 
                 std::set_difference(inputs_set.begin(), inputs_set.end(), ivar.begin(), ivar.end(), std::inserter(nivar, nivar.begin()));
-                if (ivar.size() == 0) continue;
+                if (ivar.size() == 0) {
+                    printf("the set is ni, skip it and continue\n");
+                    continue;
+                }
                 std::cout << "the size of interference variables is " << ivar.size() << "\n";
                 /**********************************************************/
                 std::cout << "i vars are: ";
@@ -523,26 +542,44 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     int ivar_comb_elem = 0;
                     pos = ivar.begin();
                     for (int elem = 0; elem < ivar.size(); elem++, pos++){
-                        if (comb & (1 << elem))
+                        if (comb & (1 << elem)){
                             ivar_comb_elem ^= (1 << *pos);
+                        }
+                    }
+                    if (comb_to_secret.count(ivar_comb_elem) == 0){
+                        secrets[curr_secret_id] = Bdd::bddOne();
+                        for (int elem = 0; elem < ivar.size(); elem++, pos++){
+                            if (comb & (1 << elem)){
+                                // ivar_comb_elem ^= (1 << *pos);
+                                secrets[curr_secret_id] &= secrets[elem];
+                            }
+                        }
+                        comb_to_secret.insert({ivar_comb_elem, curr_secret_id++});
+                        // printf("comb %d insert  %d %d \n", comb, ivar_comb_elem, curr_secret_id);
                     }
                     ivar_comb.push_back(ivar_comb_elem); 
                     // printf("%d ", ivar_comb_elem);   
                 }
                 printf("\n");
-                for (int comb = 0; comb < (1 << extended.size()); comb++) {
+                for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
                     // printf("\tcomb = %d\n", comb);
                     observation = sylvan::sylvan_true;
-                    for (int elem = 0; elem < extended.size(); elem++)
-                        if (comb & (1 << elem)) observation &= model[extended[elem]].getFunction();
+                    for (int elem = extended.size() - 1; elem >=0 ; elem--)
+                        if (comb & (1 << elem)) {
+                            // INFO("\t\tanding " + str(extended[elem]) + "...\n");
+                            observation &= model[extended[elem]].getFunction();
+                        }
+                    // INFO("\tcomb is " + str(comb) + "\n");
 
                     // printf("\tthe size of secrets is %d\n", secrets.size());
                     bool independent = true;
 
                     for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
-                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[ivar_comb[idx]].GetBDD(), varcount);
-                        if(!independent)
-                            printf("idx = %d\n", idx);
+                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[comb_to_secret[ivar_comb[idx]]].GetBDD(), varcount);
+                        if(!independent){
+                            printf("idx = %d\n", ivar_comb[idx]);
+                            printf("curr_secret_id = %d\n", comb_to_secret[ivar_comb[idx]]);                            
+                        }
                     }
                     //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                     if (!independent) {
@@ -550,6 +587,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                         return probes;
                     }
                 }
+                cache_clear();
                 printf("\n");
             } else {
                  // = 627;

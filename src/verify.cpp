@@ -87,7 +87,21 @@ po::options_description build_argument_parser(
     return all;
 }
 
+VOID_TASK_0(gc_start)
+{
+    INFO("(GC) Starting garbage collection...\n");
+}
+
+VOID_TASK_0(gc_end)
+{
+    INFO("(GC) Garbage collection done.\n");
+}
+
+
 int main (int argc, char * argv[]) {
+    // Before and after garbage collection, call gc_start and gc_end
+    sylvan::sylvan_gc_hook_pregc(TASK(gc_start));
+    sylvan::sylvan_gc_hook_postgc(TASK(gc_end));
 
     /* Configuration options / command line arguments */
     silver_config_t cfg;
@@ -141,7 +155,7 @@ int main (int argc, char * argv[]) {
     INFO("Netlist: " + dut + "\n");
     model = Silver::parse(dut);
     if (cfg.VERBOSE) INFO("Parse: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
-
+    // exit(0);
     /* Elabotare circuit model */
     std::map<int, Probes> inputs = Silver::elaborate(model);
     if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
@@ -163,12 +177,12 @@ int main (int argc, char * argv[]) {
     exit(0);   
 
     /* Standard probing security */
-    probes = Silver::check_Probing(model, inputs, order, false);
+    probes = Silver::check_Probing(model, inputs, order, true);
 
     if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
+    exit(0);
     /* Robust probing security */
     probes = Silver::check_Probing(model, inputs, order, true);
 

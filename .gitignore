@@ -9,3 +9,19 @@
 
 # Executables
 bin/**
+gene_registers.sh
+src/experiment.report
+test/1Fresh/
+test/Midori/
+test/NoFresh/
+test/PRESENT/
+test/aes/aes_cms1/
+test/aes/aes_dom1/
+test/bisbox/
+test/list_nl.sh
+test/present/sharedSbox_uniform1.regitsters
+test/present/sharedSbox_uniform2.regitsters
+test/prince_Sbox/
+test/prince_SboxInv/
+test/unisbox.nl
+
