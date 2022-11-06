@@ -103,16 +103,22 @@ Silver::elaborate(Circuit &model) {
     boost::topological_sort(model, std::back_inserter(sorted));
 
     for (auto node = sorted.rbegin(); node != sorted.rend(); ++node) {
+        if (*node == 802) std::cout << "this is 802\n";
+        model[*node].setGateId(*node);
+        // std::cout << "gate id: " << model[*node].getGateId() << "\n";
+        
         if (unary.find(model[*node].getType()) != unary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
-            // model[*node].setLeftChild(&model[op1]);
-            // printf("%ld %s %ld\n", *node, model[*node].getType(), op1);
+            
+            model[*node].setLeftChild(&model[op1]);
+            model[*node].setRightChild(NULL);
             // std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
         } else if (binary.find(model[*node].getType()) != binary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
             op2 = source(*(in_edges(*node, model).first+1), model);
+            model[*node].setLeftChild(&model[op1]);
+            model[*node].setRightChild(&model[op2]);
             // std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
-            // printf("%ld %s %ld %ld\n", *node, model[*node].getType(), op1, op2);
         } else if (!(model[*node].getType() == "in" || model[*node].getType() == "ref")) {
             printf("%ld\n", *node);
             std::cerr << "ERR1: Unsupported node detected. (ELABORATE)" << std::endl;
@@ -142,8 +148,7 @@ Silver::elaborate(Circuit &model) {
             std::cerr << "ERR2: Unsupported node detected. (ELABORATE)" << std::endl;
         }
 
-        // model[*node].getAuxiliaryTable();
-        
+        // printIntSet("supportV: ", model[*node].getSupportV());
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
             model[*node].addVariables(Bdd::bddVar(*node));
@@ -179,6 +184,7 @@ Silver::elaborate(Circuit &model) {
         if (model[*node].getType() == "in") {
             sharedInputs[model[*node].getSharing().first].push_back(*node);
         }
+        model[*node].computeAuxiliaryTable();
     }
 
     return sharedInputs;
@@ -359,6 +365,55 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
     return inputs[minimal];
 }
 
+bool is_ind(Circuit &model, std::vector<uint32_t> extended, std::vector<uint32_t>::iterator it)
+{
+    // std::cout << *it << "\n";
+    std::set<uint32_t>* other_randoms = new std::set<uint32_t>();
+    std::set<uint32_t>* result = new std::set<uint32_t>();
+    for (std::vector<uint32_t>::iterator i = extended.begin(); i != extended.end(); ++i)
+    {
+        if (*i == *it) continue;
+        std::set_union(other_randoms->begin(), other_randoms->end(), model[*i].getSupportV()->begin(),model[*i].getSupportV()->end(), inserter(*result, result->begin()));
+        //printIntSet("supportV ", model[*i].getSupportV());
+        other_randoms->clear();
+        //printIntSet("result ", result);
+        std::copy(result->begin(),result->end(), inserter(*other_randoms, other_randoms->begin()));
+        result->clear();
+    }
+    std::set<uint32_t>* unique_randoms = new std::set<uint32_t>();
+    std::set_difference(model[*it].getPerfectM()->begin(),model[*it].getPerfectM()->end(), other_randoms->begin(), other_randoms->end(), inserter(*unique_randoms, unique_randoms->begin()));
+    //printIntSet("unique_randoms ", unique_randoms);
+    // std::cout << "\n\n";
+
+    if (unique_randoms->size() > 0) return true;
+    else return false;
+}
+
+
+std::vector<uint32_t> simplify_ExtendedProbes(Circuit &model, std::vector<uint32_t> &extended){
+    bool can_be_simplified = false;
+    for(int i = 0; i < extended.size(); i++){
+        if (model[extended[i]].getPerfectM()->size() != 0)
+        {
+            can_be_simplified = true;
+            break;
+        }
+    }
+    if (can_be_simplified == false) return extended;
+    for (std::vector<uint32_t>::iterator i = extended.begin(); i != extended.end(); ++i)
+    {
+        if (is_ind(model, extended, i)){
+            extended.erase(i);
+            for (std::vector<uint32_t>::iterator i = extended.begin(); i != extended.end(); ++i)
+            {
+                // std::cout << *i << "\n";
+            }
+            return simplify_ExtendedProbes(model, extended);
+        }
+    }
+    return extended;
+}
+
 /* Partial NI Probing security */
 std::vector<Node>
 Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)
@@ -445,7 +500,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
 
             if (robustModel) {
 
-                probes[0] = 1820;
+                // probes[0] = 916;
                 INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
                 printf(" probes are %d ", probes[0]);
@@ -457,12 +512,26 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 printf("\n");
                 printf("the size of secrets is %d\n", secrets.size());
 
-                std::vector<uint32_t> extended = BddSet(observation).toVector();
+                std::vector<uint32_t> extended_o = BddSet(observation).toVector();
+                // std::set<uint32_t> set_of_extended_o;
+                // printf("%ld\n", extended.size());
+                std::cout << "before simplify_ExtendedProbes: \n";
+                for (int i = 0; i < extended_o.size(); i++){
+                    printf("%d: ", extended_o[i]);
+                    printIntSet("", model[extended_o[i]].getPerfectM());
+                    // std::cout << std::endl;
+                    // set_of_extended_o.insert(extended_o[i]);
+                }
+                std::cout << "atfer simplify_ExtendedProbes: \n";
+                std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
                 std::set<uint32_t> set_of_extended;
                 for (int i = 0; i < extended.size(); i++){
-                    printf("%d\n", extended[i]);
+                    printf("%d: ", extended[i]);
+                    printIntSet("", model[extended[i]].getPerfectM());
+                    // std::cout << std::endl;
                     set_of_extended.insert(extended[i]);
                 }
+
                 int find_subset = 0;
                 printf("the size of extended is %d\n", extended.size());
                 if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended)!= merged_obs.end()){

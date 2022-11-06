@@ -39,6 +39,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
 #include <functional>
 
 #ifndef DOUBLE_COMPARE_THRESHOLD
@@ -73,6 +74,14 @@ split(const std::string line, char delimiter)
     }
 
     return tokens;
+}
+
+void printIntSet(std::string info, std::set<uint32_t> *s){
+    std::cout << info;
+    std::copy(s->begin(),
+            s->end(),
+            std::ostream_iterator<int>(std::cout, " "));
+    std::cout << std::endl;
 }
 
 #endif // ___UTIL_HPP_
