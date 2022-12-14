@@ -101,9 +101,11 @@ Silver::elaborate(Circuit &model) {
     Node op1, op2;
 
     boost::topological_sort(model, std::back_inserter(sorted));
-
+    start = std::chrono::high_resolution_clock::now();
+    // int i = 0;
     for (auto node = sorted.rbegin(); node != sorted.rend(); ++node) {
-        if (*node == 802) std::cout << "this is 802\n";
+        // INFO(std::to_string(i++) + "-th  ");
+        // if (*node == 802) std::cout << "this is 802\n";
         model[*node].setGateId(*node);
         // std::cout << "gate id: " << model[*node].getGateId() << "\n";
         
@@ -112,13 +114,13 @@ Silver::elaborate(Circuit &model) {
             
             model[*node].setLeftChild(&model[op1]);
             model[*node].setRightChild(NULL);
-            // std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
+            std::cout << *node << " " << model[*node].getType() << " " << op1 << std::endl;
         } else if (binary.find(model[*node].getType()) != binary.end()) {
             op1 = source(*(in_edges(*node, model).first+0), model);
             op2 = source(*(in_edges(*node, model).first+1), model);
             model[*node].setLeftChild(&model[op1]);
             model[*node].setRightChild(&model[op2]);
-            // std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
+            std::cout << *node << " " << model[*node].getType() << " " << op1 << " " << op2 << std::endl;
         } else if (!(model[*node].getType() == "in" || model[*node].getType() == "ref")) {
             printf("%ld\n", *node);
             std::cerr << "ERR1: Unsupported node detected. (ELABORATE)" << std::endl;
@@ -290,15 +292,17 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
     start = std::chrono::high_resolution_clock::now();
 
-    for (int order = 0; order < probingOrder; order++) {
+    for (int order = 0; order < probingOrder+1; order++) {
         std::vector<Node> probes(order + 1);
         std::vector<bool> bitmask(positions.size()); std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
+        int cnp = 0;
         do {
+            cnp++;
             int probe = 0; for (int idx = 0; idx < bitmask.size(); idx++) if (bitmask[idx]) probes[probe++] = positions[idx];
 
             if (robustModel) {
                 INFO("now the");
-                probes[0] = 916;
+                // probes[0] = 916;
                 Bdd observation = model[probes[0]].getRegisters();
                 printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
@@ -310,21 +314,30 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 printf("the size of secrets is %d\n", secrets.size());
 
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
+                // std::vector<uint32_t> extended;
+                //8 9 10 11 13 14 15 16 18 19 20 21 22 23 128 132 446
+                // extended.push_back(626);
+                // extended.push_back(581);
+                // extended.push_back(568);
+                // extended.push_back(561);
+                // extended.push_back(559);
+                // extended.push_back(538);
+                // extended.push_back(532);
                 for (int i = 0; i < extended.size(); i++){
                     printf("%d\n", extended[i]);
                 }
                 printf("the size of extended is %d\n", extended.size());
                 printf("so comb is of size %d\n", 1 << extended.size());
                 for (int comb = (1 << extended.size()) - 1; comb > 0 ; comb--) {
-                    // printf("\tcomb = %d\n", comb);
+                    if (comb % 1000 == 0) {INFO("");printf("\tcomb = %d\n", comb);}
                     observation = sylvan::sylvan_true;
                     for (int elem = extended.size() - 1; elem >= 0 ; elem--){
                         if (comb & (1 << elem)) {
-                            INFO("\t\tanding " + str(extended[elem]) + "...\n");
+                            // INFO("\t\tanding " + str(extended[elem]) + "...\n");
                             observation &= model[extended[elem]].getFunction();
                         }
                     }
-                    INFO("\tcomb is " + str(comb) + "\n");
+                    // INFO("\tcomb is " + str(comb) + "\n");
                     // printf("\tthe size of secrets is %d\n", secrets.size());
                     bool independent = true;
                     for (int idx = 0; idx < secrets.size() && independent; idx++) {
@@ -345,24 +358,26 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 Bdd observation = model[probes[0]].getFunction();
                 for (int probe = 1; probe < probes.size(); probe++)
                     observation &= model[probes[probe]].getFunction();
-                // printf(" probes are %d ", probes[0]);
-                // for (int probe = 1; probe < probes.size(); probe++)
-                // {
-                //     // observation &= model[probes[probe]].getRegisters();
-                //     printf("%d ", probes[probe]);
-                // }
-                // printf("\n");
+                printf(" probes are %d ", probes[0]);
+                for (int probe = 1; probe < probes.size(); probe++)
+                {
+                    // observation &= model[probes[probe]].getRegisters();
+                    printf("%d ", probes[probe]);
+                }
+                printf("\n");
                 bool independent = true;
                 for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
                 //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
+                // printf("haha\n");
                 if (!independent) return probes;
                 // else printf("independent\n");
                 // return probes;
             }
-        } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+        } while (std::next_permutation(bitmask.rbegin(), bitmask.rend()));
+        printf("%d\n", cnp);
     }
-
-    return inputs[minimal];
+    printf("haha\n");
+    // return inputs[minimal];
 }
 
 bool is_ind(Circuit &model, std::vector<uint32_t> extended, std::vector<uint32_t>::iterator it)
@@ -500,7 +515,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
 
             if (robustModel) {
 
-                // probes[0] = 916;
+                // probes[0] = 1820;
                 INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
                 printf(" probes are %d ", probes[0]);
@@ -518,20 +533,35 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 std::cout << "before simplify_ExtendedProbes: \n";
                 for (int i = 0; i < extended_o.size(); i++){
                     printf("%d: ", extended_o[i]);
-                    printIntSet("", model[extended_o[i]].getPerfectM());
+                    printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
+                    printIntSet("\t supportV", model[extended_o[i]].getSupportV());
+                    printIntSet("\t uniqueM", model[extended_o[i]].getUniqueM());
                     // std::cout << std::endl;
                     // set_of_extended_o.insert(extended_o[i]);
                 }
                 std::cout << "atfer simplify_ExtendedProbes: \n";
                 std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
                 std::set<uint32_t> set_of_extended;
+                // model[1017].setFunction(model[991].getFunction()^model[1017].getFunction()^model[20].getFunction());
+                // model[1031].setFunction(model[1031].getFunction()^model[991].getFunction()^model[20].getFunction());
+                // model[1037].setFunction(model[991].getFunction()^model[1037].getFunction()^model[20].getFunction());
+                // model[991].setFunction(model[20].getFunction());
                 for (int i = 0; i < extended.size(); i++){
                     printf("%d: ", extended[i]);
-                    printIntSet("", model[extended[i]].getPerfectM());
+
+                    printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
+                    printIntSet("\t supportV", model[extended[i]].getSupportV());
+                    printIntSet("\t uniqueM", model[extended[i]].getUniqueM());
                     // std::cout << std::endl;
                     set_of_extended.insert(extended[i]);
                 }
 
+                // extended[991] = 22;
+                // extended[1017] = 20;
+                // model[991].setFunction(model[20].getFunction());
+                // model[1017].setFunction(model[991].getFunction()^model[1017].getFunction()^model[20].getFunction());
+                // model[1031].setFunction(model[1031].getFunction()^model[991].getFunction()^model[20].getFunction());
+                // model[1037].setFunction(model[991].getFunction()^model[1037].getFunction()^model[20].getFunction());
                 int find_subset = 0;
                 printf("the size of extended is %d\n", extended.size());
                 if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended)!= merged_obs.end()){
@@ -656,7 +686,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                         return probes;
                     }
                 }
-                cache_clear();
+                // cache_clear();
                 printf("\n");
             } else {
                  // = 627;
