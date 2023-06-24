@@ -193,6 +193,8 @@ public:
     }
 
     std::set<uint32_t> *getSupportV(){
+        // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
+        // supportV = new std::set(v.begin(), v.end());
         return supportV;
     }
     
@@ -203,7 +205,16 @@ public:
     std::set<uint32_t> *getPerfectM(){
         return perfectM;
     }
-    
+    // // Function to convert Vector to Set
+    // std::set<int> convertToSet(vector<int> v)
+    // {
+    //     // Declaring the set
+    //     // using range of vector
+    //     set<int> s(v.begin(), v.end());
+     
+    //     // Return the resultant Set
+    //     return s;
+    // }
     void computeAuxiliaryTable(){
         if(type == "in" || type == "ref"){
             supportV->insert(gate_id);
@@ -220,25 +231,27 @@ public:
             NodeContext *r = right_child;
             std::set<uint32_t> *lsupp = l->getSupportV();
             std::set<uint32_t> *rsupp = r->getSupportV();
-            if(gate_id == 749) printIntSet1("left_child supportV ", lsupp);
-            if(gate_id == 749) printIntSet1("right_child supportV ", rsupp);
+            // if(gate_id == 749) printIntSet1("left_child supportV ", lsupp);
+            // if(gate_id == 749) printIntSet1("right_child supportV ", rsupp);
             std::set_union(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supportV, supportV->begin()));
-            if(gate_id == 749) printIntSet1("l uniqueM ", l->getUniqueM());
-            if(gate_id == 749) printIntSet1("r uniqueM ", r->getUniqueM());
+            // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
+            // supportV = new std::set(v.begin(), v.end());
+            // if(gate_id == 749) printIntSet1("l uniqueM ", l->getUniqueM());
+            // if(gate_id == 749) printIntSet1("r uniqueM ", r->getUniqueM());
             std::set<uint32_t> *unqm_union = new std::set<uint32_t>();
             std::set<uint32_t> *supp_intersec = new std::set<uint32_t>();
-            if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
+            // if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
             std::set_union(l->getUniqueM()->begin(), l->getUniqueM()->end(), r->getUniqueM()->begin(), r->getUniqueM()->end(), inserter(*unqm_union, unqm_union->begin()));
-            if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
+            // if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
             std::set_intersection(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supp_intersec, supp_intersec->begin()));
-            if(gate_id == 749) printIntSet1("node supp_intersec ", supp_intersec);
+            // if(gate_id == 749) printIntSet1("node supp_intersec ", supp_intersec);
             std::set_difference(unqm_union->begin(), unqm_union->end(), supp_intersec->begin(), supp_intersec->end(),inserter(*uniqueM, uniqueM->begin()));
-            if(gate_id == 749) printIntSet1("node uniqueM ", uniqueM);
+            // if(gate_id == 749) printIntSet1("node uniqueM ", uniqueM);
             if (type == "xor" || type == "xnor"){
                 std::set<uint32_t> *perfectM_union = new std::set<uint32_t>();
                 std::set_union(l->getPerfectM()->begin(), l->getPerfectM()->end(), r->getPerfectM()->begin(), r->getPerfectM()->end(), inserter(*perfectM_union, perfectM_union->begin()));
                 std::set_intersection(uniqueM->begin(), uniqueM->end(), perfectM_union->begin(), perfectM_union->end(), inserter(*perfectM, perfectM->begin()));
-                if(gate_id == 749) printIntSet1("node perfectM ", perfectM);
+                // if(gate_id == 749) printIntSet1("node perfectM ", perfectM);
             }
         }
     }

@@ -66,7 +66,7 @@ reg 60
 reg 61
 reg 62
 reg 63
-ref 12
+ref 68
 reg 68
 xor 64 69
 xor 65 69

@@ -25,3 +25,22 @@ test/prince_Sbox/
 test/prince_SboxInv/
 test/unisbox.nl
 
+.vs/
+CppProperties.json
+SILVER.vcxproj
+SILVER.vcxproj.user
+benchs2.txt
+data/
+experiments2.sh
+midterm_result2.txt
+obj/
+result2.txt
+sharedfolder.txt
+test/SubByte_Unit.nl
+test/aes/aes_2om/
+test/leaky.nl
+test/mv/
+test/skinny/skinny_sbox8_TI1.regitsters
+test/test7.nl
+test/test9.nl
+test/uma/umareg.comp

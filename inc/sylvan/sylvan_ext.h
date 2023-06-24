@@ -168,7 +168,9 @@ TASK_4(int, mtbdd_statindependence, MTBDD, dd1, size_t, nvars1, MTBDD, dd2, size
 
     double single1  = SYNC(mtbdd_singprobability);
     double single2  = SYNC(mtbdd_singprobability);
+
     double combined = CALL(mtbdd_combprobability, dd1, nvars1, dd2, nvars2);
+    // std::cout << std::setprecision(6) << single1  << " " << single2 << " " << combined << "\n";
 
     hack.b = fabs(combined - (single1 * single2)) < 0.000001;
 

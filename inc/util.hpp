@@ -77,7 +77,7 @@ split(const std::string line, char delimiter)
 }
 
 void printIntSet(std::string info, std::set<uint32_t> *s){
-    std::cout << info;
+    std::cout << info << " ";
     std::copy(s->begin(),
             s->end(),
             std::ostream_iterator<int>(std::cout, " "));

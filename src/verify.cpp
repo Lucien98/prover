@@ -56,13 +56,13 @@ po::options_description build_argument_parser(
     all.add_options()
     ("help" , "Show the help message")
 
-    ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(0),
+    ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(1),
         "Maximum number of CPU cores to use. Set to 0 (default) for auto-detect")
 
     ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(1*1024*1024*1024ull),
         "RAM (in Bytes) used by Sylvan BDD library.")
 
-    ("verbose", po::value<bool>(&cfg->VERBOSE)->default_value(false),
+    ("verbose", po::value<bool>(&cfg->VERBOSE)->default_value(true),
         "Be verbose (or not) in printing detailed test reports.")
 
     ("verilog", po::value<bool>(&cfg->PARSE_VERILOG)->default_value(false),
@@ -80,7 +80,7 @@ po::options_description build_argument_parser(
     ("verilog-module_name",po::value<std::string>(&cfg->MODULE)->default_value("aes_sbox"),
         "Module contained within the verilog source to verify.")
 
-    ("insfile",po::value<std::string>(&cfg->INSFILE)->default_value("test/aes/aes_sbox_dom1.nl"),
+    ("insfile",po::value<std::string>(&cfg->INSFILE)->default_value("/home/lucien/projects/SILVER/test/aes/aes_sbox_dom1.nl"),
         "Instruction list to parse and process. Either externally provided or result of verilog parser")
     ;
 
@@ -169,7 +169,13 @@ int main (int argc, char * argv[]) {
     order = inputs[minimal].size() - 1;
 
     /* Robust probing security */
-    probes = Silver::check_PartialNIP(model, inputs, order, true);
+    probes = Silver::check_PartialNIP(model, inputs, order, false, cfg.VERBOSE);
+
+    if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
+    
+    probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
 
     if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
@@ -177,7 +183,7 @@ int main (int argc, char * argv[]) {
     exit(0);   
 
     /* Standard probing security */
-    probes = Silver::check_Probing(model, inputs, order, true);
+    probes = Silver::check_Probing(model, inputs, order, false);
 
     if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
