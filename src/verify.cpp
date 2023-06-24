@@ -56,7 +56,7 @@ po::options_description build_argument_parser(
     all.add_options()
     ("help" , "Show the help message")
 
-    ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(1),
+    ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(0),
         "Maximum number of CPU cores to use. Set to 0 (default) for auto-detect")
 
     ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(1*1024*1024*1024ull),

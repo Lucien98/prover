@@ -42,6 +42,20 @@ static void INFO(const std::string info) {
 #define str(i) std::to_string(i)
 #define time std::chrono::high_resolution_clock::now()
 
+void setLastShare(Circuit& model, std::map<int, std::vector<Node>> sharedInputs) {
+    for (int i = 0; i < sharedInputs.size(); ++i)
+    {
+        Node n = *(sharedInputs[i].rbegin());
+        //model[n].setInRandom(false);
+        model[n].getPerfectM()->clear();
+        model[n].getUniqueM()->clear();
+        model[n].getSupportV()->clear();
+        model[n].getPerfectM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
+        model[n].getUniqueM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
+        model[n].getSupportV()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
+    }
+}
+
 
 /**
  * Implementation of Netlist static class functions.
@@ -51,6 +65,7 @@ static void INFO(const std::string info) {
 Circuit
 Silver::parse(const std::string filePath)
 {
+    std::map<int, std::vector<Node>> sharedInputs;
     std::vector<std::string> tokens, annotations;
     std::string line, token;
     Circuit model;
@@ -85,7 +100,13 @@ Silver::parse(const std::string filePath)
                 model[node].setSharing({std::stoi(tokens[1]),0});
             }
         }
+        if (model[node].getType() == "in") {
+            sharedInputs[model[node].getSharing().first].push_back(node);
+            model[node].setNodeId(node);
+            model[node].computeAuxiliaryTable();
+        }
     }
+    setLastShare(model,sharedInputs);
 
     description.close();
 
@@ -177,7 +198,10 @@ Silver::elaborate(Circuit &model) {
         if (model[*node].getType() == "in") {
             sharedInputs[model[*node].getSharing().first].push_back(*node);
         }
-        model[*node].computeAuxiliaryTable();
+        else
+        {
+            model[*node].computeAuxiliaryTable();
+        }
     }
 
     return sharedInputs;
@@ -499,16 +523,16 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 if (verbose == 1)printf("the size of secrets is %d\n", secrets.size());
 
                 std::vector<uint32_t> extended_o = BddSet(observation).toVector();
-                if (verbose == 1)std::cout << "before simplify_ExtendedProbes: \n";
+                if (verbose == 1)std::cout << "before simplify_ExtendedProbes: " << extended_o.size() << "\n";
                 for (int i = 0; i < extended_o.size(); i++){
                     if (verbose == 1)printf("%d: ", extended_o[i]);
                     if (verbose == 1)printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
                     if (verbose == 1)printIntSet("\t supportV", model[extended_o[i]].getSupportV());
                     if (verbose == 1)printIntSet("\t uniqueM", model[extended_o[i]].getUniqueM());
                 }
-                if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: \n";
                 std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
                 std::set<uint32_t> set_of_extended;
+                if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
                 for (int i = 0; i < extended.size(); i++){
                     if (verbose == 1)printf("%d: ", extended[i]);
 

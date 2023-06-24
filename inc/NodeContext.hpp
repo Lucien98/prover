@@ -45,6 +45,12 @@ public:
         std::cout << std::endl;
     }
 
+    void set_union(std::set<uint32_t>* setA, std::set<uint32_t>* setB, std::set<uint32_t>* result) {
+        std::set_union(setA->begin(), setA->end(),
+            setB->begin(), setB->end(),
+            inserter(*result, result->begin())
+        );
+    }
 
     /**
      * @brief Return node type (gate functionality) stored in node context
@@ -194,14 +200,21 @@ public:
 
     std::set<uint32_t> *getSupportV(){
         // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
-        // supportV = new std::set(v.begin(), v.end());
+        // NISupportV = new std::set(v.begin(), v.end());
         return supportV;
     }
-    
+    std::set<uint32_t>* getNISupportV() {
+        return NISupportV;
+    }
+
     std::set<uint32_t> *getUniqueM(){
         return uniqueM;
     }
     
+    void setNodeId(uint32_t id) {
+        node_id = id;
+    }
+
     std::set<uint32_t> *getPerfectM(){
         return perfectM;
     }
@@ -217,12 +230,14 @@ public:
     // }
     void computeAuxiliaryTable(){
         if(type == "in" || type == "ref"){
-            supportV->insert(gate_id);
-            uniqueM->insert(gate_id);
-            perfectM->insert(gate_id);
+            supportV->insert(node_id);
+            NISupportV->insert(node_id);
+            uniqueM->insert(node_id);
+            perfectM->insert(node_id);
             return;
         }else if(type == "not" || type == "reg" || type == "out"){
             supportV = left_child->getSupportV();
+            NISupportV = left_child->getSupportV();
             uniqueM = left_child->getUniqueM();
             perfectM = left_child->getPerfectM();
 
@@ -231,37 +246,42 @@ public:
             NodeContext *r = right_child;
             std::set<uint32_t> *lsupp = l->getSupportV();
             std::set<uint32_t> *rsupp = r->getSupportV();
-            // if(gate_id == 749) printIntSet1("left_child supportV ", lsupp);
-            // if(gate_id == 749) printIntSet1("right_child supportV ", rsupp);
+            // if(node_id == 749) printIntSet1("left_child NISupportV ", lsupp);
+            // if(node_id == 749) printIntSet1("right_child NISupportV ", rsupp);
             std::set_union(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supportV, supportV->begin()));
             // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
-            // supportV = new std::set(v.begin(), v.end());
-            // if(gate_id == 749) printIntSet1("l uniqueM ", l->getUniqueM());
-            // if(gate_id == 749) printIntSet1("r uniqueM ", r->getUniqueM());
+            // NISupportV = new std::set(v.begin(), v.end());
+            // if(node_id == 749) printIntSet1("l uniqueM ", l->getUniqueM());
+            // if(node_id == 749) printIntSet1("r uniqueM ", r->getUniqueM());
+            std::set<uint32_t>* nilsupp = left_child->getNISupportV();
+            std::set<uint32_t>* nirsupp = right_child->getNISupportV();
+            set_union(nilsupp, nirsupp, NISupportV);
+
+            
             std::set<uint32_t> *unqm_union = new std::set<uint32_t>();
             std::set<uint32_t> *supp_intersec = new std::set<uint32_t>();
-            // if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
+            // if(node_id == 749) printIntSet1("node unqm_union ", unqm_union);
             std::set_union(l->getUniqueM()->begin(), l->getUniqueM()->end(), r->getUniqueM()->begin(), r->getUniqueM()->end(), inserter(*unqm_union, unqm_union->begin()));
-            // if(gate_id == 749) printIntSet1("node unqm_union ", unqm_union);
+            // if(node_id == 749) printIntSet1("node unqm_union ", unqm_union);
             std::set_intersection(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supp_intersec, supp_intersec->begin()));
-            // if(gate_id == 749) printIntSet1("node supp_intersec ", supp_intersec);
+            // if(node_id == 749) printIntSet1("node supp_intersec ", supp_intersec);
             std::set_difference(unqm_union->begin(), unqm_union->end(), supp_intersec->begin(), supp_intersec->end(),inserter(*uniqueM, uniqueM->begin()));
-            // if(gate_id == 749) printIntSet1("node uniqueM ", uniqueM);
+            // if(node_id == 749) printIntSet1("node uniqueM ", uniqueM);
             if (type == "xor" || type == "xnor"){
                 std::set<uint32_t> *perfectM_union = new std::set<uint32_t>();
                 std::set_union(l->getPerfectM()->begin(), l->getPerfectM()->end(), r->getPerfectM()->begin(), r->getPerfectM()->end(), inserter(*perfectM_union, perfectM_union->begin()));
                 std::set_intersection(uniqueM->begin(), uniqueM->end(), perfectM_union->begin(), perfectM_union->end(), inserter(*perfectM, perfectM->begin()));
-                // if(gate_id == 749) printIntSet1("node perfectM ", perfectM);
+                // if(node_id == 749) printIntSet1("node perfectM ", perfectM);
             }
         }
     }
     
     void setGateId(uint32_t id){
-        gate_id = id;
+        node_id = id;
     }
 
     uint32_t getGateId(){
-        return gate_id;
+        return node_id;
     }
 private:
 
@@ -301,9 +321,10 @@ private:
     // uint64_t key;
 
     /* eleminate random observation*/
-    uint32_t gate_id;
+    uint32_t node_id;
     NodeContext *left_child = NULL;
     NodeContext *right_child = NULL;
+    std::set<uint32_t>* NISupportV = new std::set<uint32_t>();
     std::set<uint32_t> *supportV = new std::set<uint32_t>();
     std::set<uint32_t> *uniqueM = new std::set<uint32_t>();
     std::set<uint32_t> *perfectM = new std::set<uint32_t>();
