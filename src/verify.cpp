@@ -86,7 +86,11 @@ po::options_description build_argument_parser(
 
     ("improve_varorder", po::value<bool>(&cfg->IMPROVE_VARORDER)->default_value(true),
             "Use improved var ordering.")
-        ;
+
+    ("count_node", po::value<bool>(&cfg->COUNT_NODES)->default_value(false),
+            "count the number of internal nodes in functions.")
+
+    ;
 
     return all;
 }
@@ -121,9 +125,6 @@ void test() {
 
 int main (int argc, char * argv[]) {
     //test();
-    // Before and after garbage collection, call gc_start and gc_end
-    sylvan::sylvan_gc_hook_pregc(TASK(gc_start));
-    sylvan::sylvan_gc_hook_postgc(TASK(gc_end));
 
     /* Configuration options / command line arguments */
     silver_config_t cfg;
@@ -155,6 +156,11 @@ int main (int argc, char * argv[]) {
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_mtbdd();
 
+    // Before and after garbage collection, call gc_start and gc_end
+    if (cfg.VERBOSE){
+        sylvan::sylvan_gc_hook_pregc(TASK(gc_start));
+        sylvan::sylvan_gc_hook_postgc(TASK(gc_end));
+    }
     /* Extract Designs Under Test */
     std::string dut = cfg.INSFILE;
 
@@ -172,7 +178,7 @@ int main (int argc, char * argv[]) {
             return res;
         }
     }
-
+    if (!cfg.COUNT_NODES)
     /* Parse circuit from text file*/
     INFO("Netlist: " + dut + "\n");
     std::map<int, Probes> inputs;
@@ -191,7 +197,10 @@ int main (int argc, char * argv[]) {
 
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
-
+    if (cfg.COUNT_NODES) {
+        probes = Silver::count_BddNode(model, inputs, order, true);
+        exit(0);
+    }
     /* Robust probing security */
     probes = Silver::check_PartialNIP(model, inputs, order, false, cfg.VERBOSE);
 

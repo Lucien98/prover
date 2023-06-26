@@ -313,6 +313,80 @@ Silver::check_Uniform(Circuit &model)
     }
 }
 
+/* Count Bdd node*/
+std::vector<Node>
+Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)
+{
+    LACE_ME;
+
+    std::vector<Node> positions = (robustModel) ? get_nodes_of_types(model, rprobes) : get_nodes_of_types(model, sprobes);
+
+    int minimal = get_minimal_sharing(inputs);
+
+    if (probingOrder == 0 || inputs[minimal].size() < 2 || inputs[minimal].size() < probingOrder) return inputs[minimal];
+
+    std::vector<Bdd> secrets(inputs.size());
+    for (int index = 0; index < inputs.size(); index++) {
+        secrets[index] = model[inputs[index][0]].getFunction();
+        for (int elem = 1; elem < inputs[index].size(); elem++) secrets[index] ^= model[inputs[index][elem]].getFunction();
+    }
+    uint32_t nc_f = 0;
+    uint32_t nc_x = 0;
+    std::vector<Bdd> secrets_comb(1 << inputs.size());
+    for (int comb = 1; comb < (1 << inputs.size()); comb++) {
+        secrets_comb[comb] = Bdd::bddOne();
+        for (int elem = 0; elem < inputs.size(); elem++) if (comb & (1 << elem)) secrets_comb[comb] &= secrets[elem];
+    }
+    for (int i = 1; i < (1 << inputs.size()); i++) {
+        int ncx = sylvan_nodecount(secrets_comb[i].GetBDD());
+        //std::cout << ncx << std::endl;
+        nc_x += ncx;
+    }
+    std::cout << std::to_string(nc_x) << ", ";
+
+
+    int varcount = 0;
+    for (auto node = vertices(model).first; node != vertices(model).second; node++)
+        if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+    start = std::chrono::high_resolution_clock::now();
+
+    for (int order = 0; order < probingOrder + 1; order++) {
+        std::vector<Node> probes(order + 1);
+        std::vector<bool> bitmask(positions.size()); std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
+        do {
+            int probe = 0; for (int idx = 0; idx < bitmask.size(); idx++) if (bitmask[idx]) probes[probe++] = positions[idx];
+
+            if (robustModel) {
+                Bdd observation = model[probes[0]].getRegisters();
+                for (int probe = 1; probe < probes.size(); probe++)
+                {
+                    observation &= model[probes[probe]].getRegisters();
+                }
+
+                std::vector<uint32_t> extended = BddSet(observation).toVector();
+                for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
+                    observation = sylvan::sylvan_true;
+                    for (int elem = extended.size() - 1; elem >= 0; elem--) {
+                        if (comb & (1 << elem)) {
+                            observation &= model[extended[elem]].getFunction();
+                        }
+                    }
+                    nc_f += sylvan_nodecount(observation.GetBDD()); 
+                    bool independent = true;
+                    for (int idx = 0; idx < secrets.size() && independent; idx++) {
+                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
+                    }
+                    if (!independent) {
+                        std::cout << std::to_string(nc_f) << std::endl; 
+                        return probes;
+                    }
+                }
+            }
+        } while (std::next_permutation(bitmask.rbegin(), bitmask.rend()));
+    }
+     return inputs[minimal];
+}
+
 /* Probing security */
 std::vector<Node>
 Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)

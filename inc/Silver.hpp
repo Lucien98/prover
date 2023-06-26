@@ -69,6 +69,8 @@ public:
 
     static bool check_Uniform(Circuit &model);
 
+    static std::vector<Node> count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel);
+
     static std::vector<Node> check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel);
 
     static std::vector<Node> check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose);

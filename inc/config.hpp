@@ -44,6 +44,7 @@ bool         VERBOSE;
 bool         PARSE_VERILOG;
 
 bool		 IMPROVE_VARORDER;
+bool		 COUNT_NODES;
 /* Instruction list (either externally provided or result of verilog parser) */
 std::string INSFILE ;
 
