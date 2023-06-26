@@ -24,6 +24,7 @@
  * Please see LICENSE and README for license and further instructions.
  */
 
+#include <assert.h>
 #include "config.hpp"
 #include "Silver.hpp"
 
@@ -97,8 +98,26 @@ VOID_TASK_0(gc_end)
     INFO("(GC) Garbage collection done.\n");
 }
 
+void test() {
+    std::set<uint32_t>::iterator pos;
+    std::set<uint32_t> ivar = { 0,1,2,3,4,5,6 };
+    for (int comb = 1; comb < (1 << ivar.size()); comb++) {
+        int ivar_comb_elem = 0;
+        pos = ivar.begin();
+        for (int elem = 0; elem < ivar.size(); elem++, pos++) {
+            if (comb & (1 << elem)) {
+                ivar_comb_elem ^= (1 << *pos);
+            }
+        }
+        std::cout << ivar_comb_elem << std::endl;
+        assert(comb == ivar_comb_elem);
+        assert(false);
+    }
+    exit(0);
+}
 
 int main (int argc, char * argv[]) {
+    //test();
     // Before and after garbage collection, call gc_start and gc_end
     sylvan::sylvan_gc_hook_pregc(TASK(gc_start));
     sylvan::sylvan_gc_hook_postgc(TASK(gc_end));
@@ -153,11 +172,13 @@ int main (int argc, char * argv[]) {
 
     /* Parse circuit from text file*/
     INFO("Netlist: " + dut + "\n");
-    model = Silver::parse(dut);
+    std::map<int, Probes> inputs;
+    model = Silver::parse(dut, inputs);
     if (cfg.VERBOSE) INFO("Parse: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
     // exit(0);
     /* Elabotare circuit model */
-    std::map<int, Probes> inputs = Silver::elaborate(model);
+    //std::map<int, Probes> inputs = 
+    Silver::elaborate(model, true, inputs);
     if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
 
     /* Find smallest sharing */

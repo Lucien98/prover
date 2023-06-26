@@ -62,9 +62,10 @@ class Silver {
 
 public:
 
-    static Circuit parse(const std::string filePath);
+    static Circuit parse(const std::string filePath, std::map<int, std::vector<Node>>& sharedInputs);
 
-    static std::map<int, std::vector<Node>> elaborate(Circuit &model);
+    //static std::map<int, std::vector<Node>> 
+    static std::vector<sylvan::Bdd> elaborate(Circuit &model, bool improvedVarOrder, std::map<int, std::vector<Node>> sharedInputs);
 
     static bool check_Uniform(Circuit &model);
 

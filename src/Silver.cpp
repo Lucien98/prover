@@ -63,9 +63,8 @@ void setLastShare(Circuit& model, std::map<int, std::vector<Node>> sharedInputs)
 
 /* Circuit parsing and graph generation */
 Circuit
-Silver::parse(const std::string filePath)
+Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& sharedInputs)
 {
-    std::map<int, std::vector<Node>> sharedInputs;
     std::vector<std::string> tokens, annotations;
     std::string line, token;
     Circuit model;
@@ -114,12 +113,21 @@ Silver::parse(const std::string filePath)
 }
 
 /* Circuit elaboration */
-std::map<int, std::vector<Node>>
-Silver::elaborate(Circuit &model) {
+//std::map<int, std::vector<Node>>
+std::vector<Bdd>
+Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vector<Node>> sharedInputs) {
 
-    std::map<int, std::vector<Node>> sharedInputs;
     std::vector<Node> sorted;
     Node op1, op2;
+    int num_secrets = sharedInputs.size();
+    int num_shares = sharedInputs[0].size();
+    // std::cout << "the size of secrets is " << num_secrets << std::endl;
+    int varorder = 0;
+    std::vector<Bdd> secrets;
+    for (int i = 0; i < num_secrets; i++) {
+        if (improvedVarOrder) secrets.push_back(sylvan_ithvar(i));
+        varorder++;
+    }
 
     boost::topological_sort(model, std::back_inserter(sorted));
     start = std::chrono::high_resolution_clock::now();
@@ -141,7 +149,33 @@ Silver::elaborate(Circuit &model) {
         }
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
-            model[*node].setFunction(sylvan_ithvar(*node));
+            if (improvedVarOrder)
+            {
+                int secret_index = model[*node].getSharing().first;
+                int share_index = model[*node].getSharing().second;
+                // std::cout << "secret_index: " << secret_index << " share_index " << share_index << " \n";
+                int last_share_id = *(sharedInputs[secret_index].begin());
+                // std::cout << "id of last share: " << last_share_id << std::endl;
+                // std::cout << "current node id:" << *node << std::endl;
+                if (*node == last_share_id) {
+                    sylvan::Bdd func = secrets[secret_index];
+                    for (std::vector<Node>::iterator i = sharedInputs[secret_index].begin() + 1; i != sharedInputs[secret_index].end(); ++i)
+                    {
+                        // std::cout << "xoring " << *i << "-th var...\n";
+                        func ^= model[*i].getFunction();
+                        // std::cout << "secret_index: " << model[*i].getSharing().first << " share_index " << model[*i].getSharing().second << " \n";
+
+                    }
+                    model[*node].setFunction(func);
+
+                }
+                else {
+                    model[*node].setFunction(sylvan_ithvar(varorder++));
+                }
+            }
+            else {
+                model[*node].setFunction(sylvan_ithvar(*node));
+            }
         } else if (model[*node].getType() == "ref") {
             model[*node].setFunction(sylvan_ithvar(*node));
         } else if (model[*node].getType() == "out" || model[*node].getType() == "reg") {
@@ -196,7 +230,7 @@ Silver::elaborate(Circuit &model) {
         }
 
         if (model[*node].getType() == "in") {
-            sharedInputs[model[*node].getSharing().first].push_back(*node);
+            //sharedInputs[model[*node].getSharing().first].push_back(*node);
         }
         else
         {
@@ -204,7 +238,7 @@ Silver::elaborate(Circuit &model) {
         }
     }
 
-    return sharedInputs;
+    return secrets;
 }
 
 /* Uniformity check */
@@ -474,15 +508,17 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
     if (probingOrder == 0 || inputs[minimal].size() < 2 || inputs[minimal].size() < probingOrder) 
         return inputs[minimal];
     int num_share = inputs[minimal].size();
-    std::map<uint32_t, uint32_t> comb_to_secret;
-    std::vector<Bdd> secrets(1 << inputs.size());
+    std::map<uint32_t, uint32_t> ivarToSec_indexMap;
+    std::vector<Bdd> secrets(inputs.size());
+    std::vector<Bdd> secrets_comb(1 << inputs.size());
     for (int index = 0; index < inputs.size(); index++) {
         secrets[index] = model[inputs[index][0]].getFunction();
         for (int elem = 1; elem < inputs[index].size(); elem++) 
             secrets[index] ^= model[inputs[index][elem]].getFunction();
-        comb_to_secret.insert({index, index});
+        //ivarToSec_indexMap.insert({index, index});
     }
-    int curr_secret_id = inputs.size(); //secrets.size();
+    //int curr_secret_id = inputs.size(); //secrets.size();
+    int curr_secret_id = 0;
     int varcount = 0;
     for (auto node = vertices(model).first; node != vertices(model).second; node++)
         if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
@@ -614,24 +650,29 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 }
                 if (verbose == 1)printf("\n");
                 std::vector<uint32_t> ivar_comb;
-                for (int comb = 0; comb < (1 << ivar.size()); comb++){
+                for (int comb = 1; comb < (1 << ivar.size()); comb++){
                     int ivar_comb_elem = 0;
                     pos = ivar.begin();
                     for (int elem = 0; elem < ivar.size(); elem++, pos++){
                         if (comb & (1 << elem)){
                             ivar_comb_elem ^= (1 << *pos);
                         }
+                        //assert(comb == ivar_comb_elem);
+                        //if (comb != ivar_comb_elem) {
+                        //    std::cout << "assertion 'comb == ivar_comb_elem' failed" << "\n";
+                        //    exit(0);
+                        //}
                     }
-                    if (comb_to_secret.count(ivar_comb_elem) == 0){
-                        secrets[curr_secret_id] = Bdd::bddOne();
+                    if (ivarToSec_indexMap.count(ivar_comb_elem) == 0){
+                        secrets_comb[curr_secret_id] = Bdd::bddOne();
                         for (int elem = 0; elem < ivar.size(); elem++, pos++){
                             if (comb & (1 << elem)){
-                                secrets[curr_secret_id] &= secrets[elem];
+                                secrets_comb[curr_secret_id] &= secrets[elem];
                             }
                         }
-                        comb_to_secret.insert({ivar_comb_elem, curr_secret_id++});
+                        ivarToSec_indexMap.insert({ ivar_comb_elem, curr_secret_id++});
                     }
-                    ivar_comb.push_back(ivar_comb_elem); 
+                    ivar_comb.push_back(ivar_comb_elem);
                 }
                 if (verbose == 1)printf("\n");
                 for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
@@ -643,10 +684,10 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     bool independent = true;
 
                     for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
-                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[comb_to_secret[ivar_comb[idx]]].GetBDD(), varcount);
+                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
                         if(!independent){
                             printf("idx = %d\n", ivar_comb[idx]);
-                            printf("curr_secret_id = %d\n", comb_to_secret[ivar_comb[idx]]);                            
+                            printf("curr_secret_id = %d\n", ivarToSec_indexMap[ivar_comb[idx]]);
                         }
                     }
                     if (!independent) {
