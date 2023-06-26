@@ -202,11 +202,11 @@ int main (int argc, char * argv[]) {
         exit(0);
     }
     /* Robust probing security */
-    probes = Silver::check_PartialNIP(model, inputs, order, false, cfg.VERBOSE);
+    //probes = Silver::check_PartialNIP(model, inputs, order, false, cfg.VERBOSE);
 
-    if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
+    //if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    //else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
     
     probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
 

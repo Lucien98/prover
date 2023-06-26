@@ -11,19 +11,6 @@
 bin/**
 gene_registers.sh
 src/experiment.report
-test/1Fresh/
-test/Midori/
-test/NoFresh/
-test/PRESENT/
-test/aes/aes_cms1/
-test/aes/aes_dom1/
-test/bisbox/
-test/list_nl.sh
-test/present/sharedSbox_uniform1.regitsters
-test/present/sharedSbox_uniform2.regitsters
-test/prince_Sbox/
-test/prince_SboxInv/
-test/unisbox.nl
 
 .vs/
 CppProperties.json
@@ -36,11 +23,6 @@ midterm_result2.txt
 obj/
 result2.txt
 sharedfolder.txt
-test/SubByte_Unit.nl
-test/aes/aes_2om/
-test/leaky.nl
-test/mv/
-test/skinny/skinny_sbox8_TI1.regitsters
-test/test7.nl
-test/test9.nl
-test/uma/umareg.comp
+
+test/list_nl.sh
+test/rename_infeasible.sh
