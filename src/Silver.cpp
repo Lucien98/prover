@@ -34,6 +34,11 @@ using namespace sylvan;
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> start;
 
+static double elapsedTime() {
+    std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
+    return elapsed.count();
+}
+
 static void INFO(const std::string info) {
     std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
     std::cout << "[*" << std::setw(10) << std::fixed << std::setprecision(3) << elapsed.count() << "] " << info;
@@ -389,7 +394,7 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
 
 /* Probing security */
 std::vector<Node>
-Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)
+Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose)
 {
     LACE_ME;
 
@@ -418,54 +423,39 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
     for (int order = 0; order < probingOrder+1; order++) {
         std::vector<Node> probes(order + 1);
         std::vector<bool> bitmask(positions.size()); std::fill(bitmask.begin(), bitmask.begin() + (order + 1), true);
-        int cnp = 0;
         do {
-            cnp++;
             int probe = 0; for (int idx = 0; idx < bitmask.size(); idx++) if (bitmask[idx]) probes[probe++] = positions[idx];
 
             if (robustModel) {
-                INFO("now the");
-                // probes[0] = 916;
+                if (verbose == 1) INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
-                printf(" probes are %d ", probes[0]);
+                if (verbose == 1) printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
                 {
                     observation &= model[probes[probe]].getRegisters();
-                    printf("%d ", probes[probe]);
+                    if (verbose == 1) printf("%d ", probes[probe]);
                 }
-                printf("\n");
-                printf("the size of secrets is %d\n", secrets.size());
+                if (verbose == 1) printf("\n");
+                if (verbose == 1) printf("the size of secrets is %d\n", secrets.size());
 
-                // std::vector<uint32_t> extended = BddSet(observation).toVector();
-                std::vector<uint32_t> extended;
-                //8 9 10 11 13 14 15 16 18 19 20 21 22 23 128 132 446
-                // extended.push_back(626);
-                // extended.push_back(581);
-                // extended.push_back(568);
-                // extended.push_back(561);
-                // extended.push_back(559);
-                // extended.push_back(538);
-                // extended.push_back(532);
-                //15 23 307 310 325 326 327 333 334 338 339 388
-                extended.push_back(15);
-                extended.push_back(23);
-                extended.push_back(307);
-                extended.push_back(310);
-                extended.push_back(325);
-                extended.push_back(326);
-                extended.push_back(327);
-                extended.push_back(333);
-                extended.push_back(334);
-                extended.push_back(338);
-                extended.push_back(339);
-                extended.push_back(388);
+                std::vector<uint32_t> extended = BddSet(observation).toVector();
                 for (int i = 0; i < extended.size(); i++){
-                    printf("%d\n", extended[i]);
+                    if (verbose == 1) printf("%d\n", extended[i]);
                 }
-                printf("the size of extended is %d\n", extended.size());
-                printf("so comb is of size %d\n", 1 << extended.size());
+                if (verbose == 1) printf("the size of extended is %d\n", extended.size());
+                if (verbose == 1) printf("so comb is of size %d\n", 1 << extended.size());
                 for (int comb = (1 << extended.size()) - 1; comb > 0 ; comb--) {
-                    if (comb % 1000 == 0) {INFO("");printf("\tcomb = %d\n", comb);}
+                    if (comb % 1000 == 0) 
+                    {
+                        if (elapsedTime() > 36000.0) {
+                            INFO("Time out!\n");
+                            exit(0);
+                        }
+                        if (verbose == 1) {
+                            INFO("");
+                            printf("\tcomb = %d\n", comb);
+                        }
+                    }
                     observation = sylvan::sylvan_true;
                     for (int elem = extended.size() - 1; elem >= 0 ; elem--){
                         if (comb & (1 << elem)) {
@@ -488,32 +478,25 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                         return probes;
                     }
                 }
-                printf("\n");
+                if (verbose == 1) printf("\n");
             } else {
-                 // = 627;
                 Bdd observation = model[probes[0]].getFunction();
                 for (int probe = 1; probe < probes.size(); probe++)
                     observation &= model[probes[probe]].getFunction();
-                printf(" probes are %d ", probes[0]);
-                for (int probe = 1; probe < probes.size(); probe++)
-                {
-                    // observation &= model[probes[probe]].getRegisters();
-                    printf("%d ", probes[probe]);
-                }
-                printf("\n");
+                //printf(" probes are %d ", probes[0]);
+                //for (int probe = 1; probe < probes.size(); probe++)
+                //{
+                //    // observation &= model[probes[probe]].getRegisters();
+                //    printf("%d ", probes[probe]);
+                //}
+                //printf("\n");
                 bool independent = true;
                 for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
-                //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
-                // printf("haha\n");
                 if (!independent) return probes;
-                // else printf("independent\n");
-                // return probes;
             }
         } while (std::next_permutation(bitmask.rbegin(), bitmask.rend()));
-        printf("%d\n", cnp);
     }
-    printf("haha\n");
-    // return inputs[minimal];
+    return inputs[minimal];
 }
 
 bool is_ind(Circuit &model, std::vector<uint32_t> extended, std::vector<uint32_t>::iterator it)
@@ -750,6 +733,17 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 }
                 if (verbose == 1)printf("\n");
                 for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
+                    if (comb % 1000 == 0)
+                    {
+                        if (elapsedTime() > 36000.0) {
+                            INFO("Time out!\n");
+                            exit(0);
+                        }
+                        if (verbose == 1) {
+                            INFO("");
+                            printf("\tcomb = %d\n", comb);
+                        }
+                    }
                     observation = sylvan::sylvan_true;
                     for (int elem = extended.size() - 1; elem >=0 ; elem--)
                         if (comb & (1 << elem)) {
