@@ -83,7 +83,10 @@ po::options_description build_argument_parser(
 
     ("insfile",po::value<std::string>(&cfg->INSFILE)->default_value("/home/lucien/projects/SILVER/test/aes/aes_sbox_dom1.nl"),
         "Instruction list to parse and process. Either externally provided or result of verilog parser")
-    ;
+
+    ("improve_varorder", po::value<bool>(&cfg->IMPROVE_VARORDER)->default_value(true),
+            "Use improved var ordering.")
+        ;
 
     return all;
 }
@@ -178,7 +181,7 @@ int main (int argc, char * argv[]) {
     // exit(0);
     /* Elabotare circuit model */
     //std::map<int, Probes> inputs = 
-    Silver::elaborate(model, true, inputs);
+    Silver::elaborate(model, cfg.IMPROVE_VARORDER, inputs);
     if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
 
     /* Find smallest sharing */

@@ -43,6 +43,7 @@ bool         VERBOSE;
 /* Enable (true) / disable (false) verilog design parsing */
 bool         PARSE_VERILOG;
 
+bool		 IMPROVE_VARORDER;
 /* Instruction list (either externally provided or result of verilog parser) */
 std::string INSFILE ;
 
