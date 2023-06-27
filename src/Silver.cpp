@@ -335,8 +335,8 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
         secrets[index] = model[inputs[index][0]].getFunction();
         for (int elem = 1; elem < inputs[index].size(); elem++) secrets[index] ^= model[inputs[index][elem]].getFunction();
     }
-    uint32_t nc_f = 0;
-    uint32_t nc_x = 0;
+    uint64_t nc_f = 0;
+    uint64_t nc_x = 0;
     std::vector<Bdd> secrets_comb(1 << inputs.size());
     for (int comb = 1; comb < (1 << inputs.size()); comb++) {
         secrets_comb[comb] = Bdd::bddOne();
@@ -382,7 +382,7 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
                         independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
                     }
                     if (!independent) {
-                        std::cout << std::to_string(nc_f) << std::endl; 
+                        std::cout << std::to_string(nc_f); 
                         return probes;
                     }
                 }
@@ -448,8 +448,8 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                     if (comb % 1000 == 0) 
                     {
                         if (elapsedTime() > 36000.0) {
-                            INFO("Time out!\n");
-                            exit(0);
+                            printf("Time out!");
+                            return probes;
                         }
                         if (verbose == 1) {
                             INFO("");
@@ -469,12 +469,12 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                     for (int idx = 0; idx < secrets.size() && independent; idx++) {
                         // printf("\t\tidx = %d\n", idx);
                         independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
-                        if(!independent)
+                        if(!independent && verbose)
                             printf("idx = %d\n", idx);
                     }
                     //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                     if (!independent) {
-                        printf("independent: comb = %d \n", comb);
+                        if (verbose == 1) printf("independent: comb = %d \n", comb);
                         return probes;
                     }
                 }
@@ -736,8 +736,8 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     if (comb % 1000 == 0)
                     {
                         if (elapsedTime() > 36000.0) {
-                            INFO("Time out!\n");
-                            exit(0);
+                            printf("Time out!");
+                            return probes;
                         }
                         if (verbose == 1) {
                             INFO("");
@@ -753,13 +753,13 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
 
                     for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
                         independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
-                        if(!independent){
+                        if(!independent && verbose){
                             printf("idx = %d\n", ivar_comb[idx]);
                             printf("curr_secret_id = %d\n", ivarToSec_indexMap[ivar_comb[idx]]);
                         }
                     }
                     if (!independent) {
-                        printf("independent: comb = %d \n", comb);
+                        if (verbose == 1) printf("independent: comb = %d \n", comb);
                         return probes;
                     }
                 }
@@ -1304,12 +1304,12 @@ Silver::get_minimal_sharing(std::map<int, Probes> inputs)
 void
 Silver::print_node_vector(const Circuit &model, const std::vector<Node> nodes)
 {
-    std::cout << "<";
+    std::cout << "\"";
     for (int n = 0; n < nodes.size(); n++) {
-            std::cout << model[nodes[n]].getType() << ":line" << nodes[n] + 1;
+            std::cout <<  nodes[n] + 1;
         if (n != nodes.size() - 1) std::cout << ",";
     }
-    std::cout << ">" << std::endl;
+    std::cout << "\"\n";
 }
 
 void

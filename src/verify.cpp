@@ -40,6 +40,11 @@ namespace po = boost::program_options;
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> start;
 
+static double elapsedTime() {
+    std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
+    return elapsed.count();
+}
+
 static void INFO(const std::string info) {
     std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
     std::cout << "[" << std::setw(10) << std::fixed << std::setprecision(3) << elapsed.count() << "] " << info;
@@ -178,9 +183,9 @@ int main (int argc, char * argv[]) {
             return res;
         }
     }
-    if (!cfg.COUNT_NODES)
-    /* Parse circuit from text file*/
-    INFO("Netlist: " + dut + "\n");
+    //if (!cfg.COUNT_NODES)
+    ///* Parse circuit from text file*/
+    //INFO("Netlist: " + dut + "\n");
     std::map<int, Probes> inputs;
     model = Silver::parse(dut, inputs);
     if (cfg.VERBOSE) INFO("Parse: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
@@ -199,9 +204,10 @@ int main (int argc, char * argv[]) {
     order = inputs[minimal].size() - 1;
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
-        if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-        else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-        std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); 
+        std::cout << str(elapsedTime()) << ",";
+        if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
+        else                        std::cout << str(probes.size() - 0) << ",";
+        Silver::print_node_vector(model, probes); 
         exit(0);
     }
     /* Robust probing security */
@@ -213,10 +219,10 @@ int main (int argc, char * argv[]) {
     if (cfg.IMPROVE_VARORDER) {
         probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
 
-        if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-        else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-        if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); }
-        else { std::cout << std::endl; }
+        std::cout << str(elapsedTime()) << ",";
+        if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
+        else                        std::cout << str(probes.size() - 0) << ",";
+        Silver::print_node_vector(model, probes);
         exit(0);
     }
 
@@ -230,10 +236,11 @@ int main (int argc, char * argv[]) {
     /* Robust probing security */
     probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE);
 
-    if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    exit(0);   
+    std::cout << str(elapsedTime()) << ",";
+    if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
+    else                        std::cout << str(probes.size() - 0) << ",";
+    Silver::print_node_vector(model, probes);
+    exit(0);
     /* Standard non-interference */
     probes = Silver::check_NI(model, inputs, order, false);
 

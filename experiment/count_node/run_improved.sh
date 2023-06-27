@@ -3,10 +3,6 @@ find test -name *.nl > experiment/count_node/benchs.txt
 
 while read line;
 do
-	echo $line >> experiment/count_node/improved.txt
-	./bin/verify --insfile ${line} --count_node 1 --improve_varorder 1 --verbose 0 >> experiment/count_node/improved.txt
-
-	echo >> experiment/count_node/improved.txt
-	echo >> experiment/count_node/improved.txt
-	echo "****************" >> experiment/count_node/improved.txt
+	echo -n $line, >> experiment/count_node/improved.csv
+	./bin/verify --insfile ${line} --count_node 1 --improve_varorder 1 --verbose 0 >> experiment/count_node/improved.csv
 done < experiment/count_node/benchs.txt
