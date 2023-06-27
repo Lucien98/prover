@@ -199,6 +199,9 @@ int main (int argc, char * argv[]) {
     order = inputs[minimal].size() - 1;
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
+        if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+        else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+        std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); 
         exit(0);
     }
     /* Robust probing security */
@@ -207,13 +210,15 @@ int main (int argc, char * argv[]) {
     //if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     //else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    
-    probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
+    if (cfg.IMPROVE_VARORDER) {
+        probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
 
-    if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    exit(0);   
+        if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+        else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+        if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); }
+        else { std::cout << std::endl; }
+        exit(0);
+    }
 
     /* Standard probing security */
     //probes = Silver::check_Probing(model, inputs, order, false, cfg.VERBOSE);
