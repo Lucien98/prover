@@ -164,14 +164,11 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
                 // std::cout << "current node id:" << *node << std::endl;
                 if (*node == last_share_id) {
                     sylvan::Bdd func = secrets[secret_index];
-                    // if (*node == 2) assert(func == sylvan_ithvar(1));
                     for (std::vector<Node>::iterator i = sharedInputs[secret_index].begin() + 1; i != sharedInputs[secret_index].end(); ++i)
                     {
                         // std::cout << "xoring " << *i << "-th var...\n";
                         func ^= model[*i].getFunction();
-                        // if (*node == 2) assert(model[*i].getFunction() == sylvan_ithvar(2));
                         // std::cout << "secret_index: " << model[*i].getSharing().first << " share_index " << model[*i].getSharing().second << " \n";
-                        // if (*node == 2) assert(model[2].getFunction() == sylvan_ithvar(2)^sylvan_ithvar(1));
 
                     }
                     model[*node].setFunction(func);
@@ -205,10 +202,6 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
         } else {
             std::cerr << "ERR2: Unsupported node detected. (ELABORATE)" << std::endl;
         }
-        // if (*node == 3) assert(model[3].getFunction() == sylvan_ithvar(2));
-        // if (*node == 2) assert(model[2].getFunction() == sylvan_ithvar(2)^sylvan_ithvar(1));
-        // if (*node == 1) assert(model[1].getFunction() == sylvan_ithvar(3));
-        // if (*node == 0) assert(model[0].getFunction() == sylvan_ithvar(3)^sylvan_ithvar(0));
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
             model[*node].addVariables(Bdd::bddVar(*node));
@@ -579,8 +572,6 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
         secrets[index] = model[inputs[index][0]].getFunction();
         for (int elem = 1; elem < inputs[index].size(); elem++) 
             secrets[index] ^= model[inputs[index][elem]].getFunction();
-        // assert(secrets[index] == sylvan_ithvar(index));
-        //ivarToSec_indexMap.insert({index, index});
     }
     //int curr_secret_id = inputs.size(); //secrets.size();
     int curr_secret_id = 0;
@@ -718,13 +709,6 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                 for (pos = ivar.begin(); pos != ivar.end(); pos++){
                     if (verbose == 1)std::cout << *pos << " ";
                 }
-                //if (model[ extended[0]].getFunction() + model[ extended[1]].getFunction() == sylvan_ithvar(1)){
-                //    std::cout << "That's my boy!\n";
-                //}else{
-                //    std::cout << "what the fuck?\n";
-                //}
-                // assert(model[3].getFunction() == sylvan_ithvar(2));
-                // assert(model[2].getFunction() == sylvan_ithvar(2)^sylvan_ithvar(1));
                 if (verbose == 1)printf("\n");
                 if (verbose == 1)std::cout << "ni vars are: ";
                 for (pos = nivar.begin(); pos != nivar.end(); pos++){
@@ -739,11 +723,6 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                         if (comb & (1 << elem)){
                             ivar_comb_elem ^= (1 << *pos);
                         }
-                        //assert(comb == ivar_comb_elem);
-                        //if (comb != ivar_comb_elem) {
-                        //    std::cout << "assertion 'comb == ivar_comb_elem' failed" << "\n";
-                        //    exit(0);
-                        //}
                     }
                     std::vector<uint32_t> ivar_vec(ivar.begin(), ivar.end());
                     if (ivarToSec_indexMap.count(ivar_comb_elem) == 0){
@@ -777,7 +756,6 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                             observation &= model[extended[elem]].getFunction();
                         }
                     bool independent = true;
-                    // assert(secrets_comb[ivarToSec_indexMap[ivar_comb[0]]] == sylvan_ithvar(1));
                     for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
                         independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
                         if(!independent && verbose){
