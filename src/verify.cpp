@@ -89,7 +89,7 @@ po::options_description build_argument_parser(
     ("insfile",po::value<std::string>(&cfg->INSFILE)->default_value("/home/lucien/projects/SILVER/test/aes/aes_sbox_dom1.nl"),
         "Instruction list to parse and process. Either externally provided or result of verilog parser")
 
-    ("improve_varorder", po::value<bool>(&cfg->IMPROVE_VARORDER)->default_value(true),
+    ("improve_varorder", po::value<int>(&cfg->IMPROVE_VARORDER)->default_value(1),
             "Use improved var ordering.")
 
     ("count_node", po::value<bool>(&cfg->COUNT_NODES)->default_value(false),
@@ -216,7 +216,7 @@ int main (int argc, char * argv[]) {
     //if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     //else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    if (cfg.IMPROVE_VARORDER) {
+    if (cfg.IMPROVE_VARORDER == 1) {
         probes = Silver::check_PartialNIP(model, inputs, order, true, cfg.VERBOSE);
 
         std::cout << str(elapsedTime()) << ",";

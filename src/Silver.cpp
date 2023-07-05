@@ -368,7 +368,8 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
                 }
 
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
-                for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
+                for (int comb = 1; comb < 1 << extended.size() ; comb ++) {
+                // for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
                     observation = sylvan::sylvan_true;
                     for (int elem = extended.size() - 1; elem >= 0; elem--) {
                         if (comb & (1 << elem)) {
