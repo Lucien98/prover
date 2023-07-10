@@ -83,11 +83,10 @@ public:
 
     static void print_node_vector(const Circuit &model, const std::vector<Node> nodes);
 
+    static std::vector<Node> get_nodes_of_types(Circuit& model, const std::set<std::string> types);
 private:
     static void inter_vector_combinations_and(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, std::vector<sylvan::Bdd> &inter);
     static bool inter_vector_combinations_xor(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, int varcount);
-
-    static std::vector<Node> get_nodes_of_types(Circuit &model, const std::set<std::string> types);
 
     static int get_minimal_sharing(std::map<int, Probes> inputs);
 };

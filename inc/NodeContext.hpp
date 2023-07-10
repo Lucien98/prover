@@ -237,7 +237,7 @@ public:
             return;
         }else if(type == "not" || type == "reg" || type == "out"){
             supportV = left_child->getSupportV();
-            NISupportV = left_child->getSupportV();
+            NISupportV = left_child->getNISupportV();
             uniqueM = left_child->getUniqueM();
             perfectM = left_child->getPerfectM();
 

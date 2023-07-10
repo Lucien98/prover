@@ -95,6 +95,9 @@ po::options_description build_argument_parser(
     ("count_node", po::value<bool>(&cfg->COUNT_NODES)->default_value(false),
             "count the number of internal nodes in functions.")
 
+    ("info", po::value<bool>(&cfg->INFO)->default_value(false),
+            "Gives information about the test bench.")
+
     ;
 
     return all;
@@ -188,6 +191,11 @@ int main (int argc, char * argv[]) {
     //INFO("Netlist: " + dut + "\n");
     std::map<int, Probes> inputs;
     model = Silver::parse(dut, inputs);
+    if (cfg.INFO) {
+        std::vector<Node> positions = Silver::get_nodes_of_types(model, { "out", "reg" }) ;
+        printf("%d, %d, %d, %d\n", inputs.size(), inputs[0].size(), num_edges(model), positions.size());
+        exit(0);
+    }
     if (cfg.VERBOSE) INFO("Parse: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
     // exit(0);
     /* Elabotare circuit model */

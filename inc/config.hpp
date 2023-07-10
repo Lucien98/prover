@@ -42,7 +42,7 @@ bool         VERBOSE;
 
 /* Enable (true) / disable (false) verilog design parsing */
 bool         PARSE_VERILOG;
-
+bool		 INFO;
 int		 IMPROVE_VARORDER;
 bool		 COUNT_NODES;
 /* Instruction list (either externally provided or result of verilog parser) */
