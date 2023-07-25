@@ -130,7 +130,7 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
     int varorder = 0;
     std::vector<Bdd> secrets;
     for (int i = 0; i < num_secrets; i++) {
-        if (improvedVarOrder) secrets.push_back(sylvan_ithvar(i));
+        if (improvedVarOrder == 1 || improvedVarOrder == 2) secrets.push_back(sylvan_ithvar(i));
         varorder++;
     }
 
@@ -154,7 +154,7 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
         }
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
-            if (improvedVarOrder)
+            if (improvedVarOrder == 1 || improvedVarOrder == 2)
             {
                 int secret_index = model[*node].getSharing().first;
                 int share_index = model[*node].getSharing().second;
@@ -173,6 +173,11 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
                     }
                     model[*node].setFunction(func);
 
+                }
+                else if (improvedVarOrder == 3) {
+                    std::pair<int, int> shr = model[*node].getSharing();
+                    int ith = shr.first * 2 + shr.second;
+                    model[*node].setFunction(sylvan_ithvar(ith));
                 }
                 else {
                     model[*node].setFunction(sylvan_ithvar(varorder++));
@@ -343,11 +348,16 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
     }
     for (int i = 1; i < (1 << inputs.size()); i++) {
         int ncx = sylvan_nodecount(secrets_comb[i].GetBDD());
-        //std::cout << ncx << std::endl;
+        // std::cout << ncx << std::endl;
         nc_x += ncx;
     }
+    // std::cout << "the first variable: " << std::endl;
+    // std::cout << sylvan_nodecount(sylvan_ithvar(0)) << std::endl;
+    // std::cout << sylvan_nodecount(sylvan_ithvar(1)) << std::endl;
+    // std::cout << sylvan_nodecount(sylvan_ithvar(1) ^ sylvan_ithvar(0)) << std::endl;
+    // std::cout << sylvan_nodecount(sylvan_ithvar(0) ^ sylvan_ithvar(1)) << std::endl;
+    // std::cout << sylvan_nodecount(sylvan_ithvar(0) * sylvan_ithvar(1)) << std::endl;
     std::cout << std::to_string(nc_x) << ", ";
-
 
     int varcount = 0;
     for (auto node = vertices(model).first; node != vertices(model).second; node++)

@@ -193,7 +193,7 @@ int main (int argc, char * argv[]) {
     model = Silver::parse(dut, inputs);
     if (cfg.INFO) {
         std::vector<Node> positions = Silver::get_nodes_of_types(model, { "out", "reg" }) ;
-        printf("%d, %d, %d, %d\n", inputs.size(), inputs[0].size(), num_edges(model), positions.size());
+        printf("%d, %d, %d, %d\n", inputs.size(), inputs[0].size(), num_vertices(model), positions.size());
         exit(0);
     }
     if (cfg.VERBOSE) INFO("Parse: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
