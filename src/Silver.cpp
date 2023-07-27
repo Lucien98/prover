@@ -179,7 +179,8 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
             }
             else if (improvedVarOrder == 3) {
                     std::pair<int, int> shr = model[*node].getSharing();
-                    int ith = shr.first * 2 + shr.second;
+                    int ith = shr.first * num_shares + shr.second;
+                    // std::cout << ith << std::endl;
                     model[*node].setFunction(sylvan_ithvar(ith));
                 }
             else {
