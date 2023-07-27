@@ -120,8 +120,7 @@ Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& shar
 /* Circuit elaboration */
 //std::map<int, std::vector<Node>>
 std::vector<Bdd>
-Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vector<Node>> sharedInputs) {
-
+Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector<Node>> sharedInputs) {
     std::vector<Node> sorted;
     Node op1, op2;
     int num_secrets = sharedInputs.size();
@@ -174,15 +173,15 @@ Silver::elaborate(Circuit &model, bool improvedVarOrder,std::map<int, std::vecto
                     model[*node].setFunction(func);
 
                 }
-                else if (improvedVarOrder == 3) {
-                    std::pair<int, int> shr = model[*node].getSharing();
-                    int ith = shr.first * 2 + shr.second;
-                    model[*node].setFunction(sylvan_ithvar(ith));
-                }
                 else {
                     model[*node].setFunction(sylvan_ithvar(varorder++));
                 }
             }
+            else if (improvedVarOrder == 3) {
+                    std::pair<int, int> shr = model[*node].getSharing();
+                    int ith = shr.first * 2 + shr.second;
+                    model[*node].setFunction(sylvan_ithvar(ith));
+                }
             else {
                 model[*node].setFunction(sylvan_ithvar(*node));
             }
