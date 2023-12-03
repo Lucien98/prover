@@ -156,7 +156,7 @@ int main (int argc, char * argv[]) {
     bool check;
 
     /* Start LACE framework */
-    lace_init(cfg.CORES, 0);
+    lace_init(cfg.CORES, 100000000);
     lace_startup(0, NULL, NULL);
 
     /* Start BDD session */
@@ -210,6 +210,12 @@ int main (int argc, char * argv[]) {
 
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
+
+    bool uniform1 = Silver::check_Uniform1(model);
+
+    if (uniform1)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
+    else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
+
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
         std::cout << str(elapsedTime()) << ",";
@@ -242,6 +248,7 @@ int main (int argc, char * argv[]) {
     //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
     //exit(0);
     /* Robust probing security */
+
     probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE);
 
     std::cout << str(elapsedTime()) << ",";
@@ -249,6 +256,12 @@ int main (int argc, char * argv[]) {
     else                        std::cout << str(probes.size() - 0) << ",";
     Silver::print_node_vector(model, probes);
     exit(0);
+        /* Robust probe-isolating non-interference */
+    // probes = Silver::check_PINI(model, inputs, order, true);
+
+    // if (probes.size() - 1 != 0) INFO("PINI.robust      (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    // else                        INFO("PINI.robust      (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
     /* Standard non-interference */
     probes = Silver::check_NI(model, inputs, order, false);
 

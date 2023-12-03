@@ -322,6 +322,64 @@ Silver::check_Uniform(Circuit &model)
     }
 }
 
+bool
+Silver::check_Uniform1(Circuit &model)
+{
+    LACE_ME;
+
+    int varcount = 0;
+    for (auto node = vertices(model).first; node != vertices(model).second; node++)
+        if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+
+    std::vector<uint32_t> extended;
+    for (auto gate = vertices(model).first; gate != vertices(model).second; ++gate) {
+        if (model[*gate].getType() == "out" && model[*gate].getSharing().second == 0) {
+            extended.push_back(*gate);
+        }
+    }
+    std::cout << extended.size() << std::endl;
+    for (auto i :extended) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+    Bdd observation;
+    Bdd observation1;
+    int hw;
+    for (int comb = 1; comb < (1 << extended.size()); comb++) {
+        observation = sylvan::sylvan_true;
+        hw = 0;
+        std::cout << comb << std::endl;
+        for (int elem = extended.size() - 1; elem >= 0; elem--)
+            if (comb & (1 << elem)) {
+                observation &= model[extended[elem]].getFunction();
+                std::cout << extended[elem] << std::endl;
+                hw++;
+            }
+        double p = mtbdd_satcountln(observation.GetBDD(), varcount);
+        double delta = p + hw - varcount;
+        std::cout << "prob: " << p << " hw: " << hw << "\n";
+        if (abs(delta) !=0 ) {
+            std::cout << comb << std::endl;
+            return false;
+        }
+        //bool balanced = true;
+        //if (!balanced) return false;
+        // observation1 = sylvan::sylvan_true;
+        // for (int elem = extended.size() - 1; elem >= 0; elem--)
+        //     if (comb & (1 << elem)) {
+        //         observation1 ^= model[extended[elem]].getFunction();
+        //         hw++;
+        //     }
+        // double p1 = mtbdd_satcountln(observation1.GetBDD(), varcount);
+        // double delta1 = p1 - varcount;
+        // std::cout << "prob: " << p1  << "\n";
+        // if (abs(delta1) != 1) {
+        //     return false;
+        // }
+    }
+    return true;
+}
+
 /* Count Bdd node*/
 std::vector<Node>
 Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel)
@@ -1153,7 +1211,11 @@ Silver::check_PINI(Circuit &model, std::map<int, Probes> inputs, const int probi
                     observation &= model[probes[probe]].getRegisters();
 
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
-
+                std::cout << "extended:";
+                for (auto e: extended){
+                    std::cout << e << " ";
+                }
+                std::cout << std::endl;
                 for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     observation = sylvan::sylvan_true;
                     for (int elem = 0; elem < extended.size(); elem++)
@@ -1216,6 +1278,11 @@ Silver::check_PINI(Circuit &model, std::map<int, Probes> inputs, const int probi
                                     }
                                 }
                             }
+                            if (!independent) continue;
+                            for (auto c: combination){
+                                std::cout << c << ", ";
+                            }
+                            std::cout << std::endl;
                         }
 
                         if (!independent) return probes;
