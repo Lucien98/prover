@@ -26,3 +26,6 @@ sharedfolder.txt
 
 test/list_nl.sh
 test/rename_infeasible.sh
+
+experiment/aes/
+experiment/keccak/

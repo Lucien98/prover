@@ -1,33 +1,18 @@
-# Improved SILVER
-## 27 June
-### usage
-    Silver arguments:
-      --help                                Show the help message
-      --cores arg (=0)                      Maximum number of CPU cores to use. Set
-                                            to 0 (default) for auto-detect
-      --memory arg (=1073741824)            RAM (in Bytes) used by Sylvan BDD 
-                                            library.
-      --verbose arg (=1)                    Be verbose (or not) in printing 
-                                            detailed test reports.
-      --verilog arg (=0)                    Parse the verilog design described by 
-                                            the --verilog-* parameters.
-      --verilog-libfile arg (=cell/Library.txt)
-                                            Technology library description.
-      --verilog-libname arg (=NANG45)       Technology library name.
-      --verilog-design_file arg (=vlog/aes/AES_Sbox_DOM/2-Synthesized/aes_sbox_dom1.v)
-                                            Verilg source file containing the 
-                                            design.
-      --verilog-module_name arg (=aes_sbox) Module contained within the verilog 
-                                            source to verify.
-      --insfile arg (=/home/lucien/projects/SILVER/test/aes/aes_sbox_dom1.nl)
-                                            Instruction list to parse and process. 
-                                            Either externally provided or result of
-                                            verilog parser
+# Prover - Improved SILVER
+Prover is a tool based on SILVER. It can efficiently check the glitch-extended probing security of a given netlist.
+
+
+
+## Command line options for Prover
+
+```
+Addional arguments for Prover:
       --improve_varorder arg (=1)           Use improved var ordering.
       --count_node arg (=0)                 count the number of internal nodes in 
                                             functions.
+```
 
-
+### run the experiments
 
 To count node with original variable order:
 
@@ -46,10 +31,9 @@ To use improved SILVER to verify:
     ./bin/verify --improve_varorder 1 --verbose 0
 
 
-### run the experiments
-
-
 Here down below is the original README.md of SILVER
+
+---
 
 # SILVER - Statistical Independence and Leakage Verification
 
