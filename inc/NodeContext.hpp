@@ -199,18 +199,12 @@ public:
     }
 
     std::set<uint32_t> *getSupportV(){
-        // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
-        // NISupportV = new std::set(v.begin(), v.end());
         return supportV;
     }
     std::set<uint32_t>* getNISupportV() {
         return NISupportV;
     }
 
-    // std::set<uint32_t> *getUniqueM(){
-    //     return uniqueM;
-    // }
-    
     void setNodeId(uint32_t id) {
         node_id = id;
     }
@@ -223,13 +217,11 @@ public:
         if(type == "in" || type == "ref"){
             supportV->insert(node_id);
             NISupportV->insert(node_id);
-            // uniqueM->insert(node_id);
             perfectM->insert(node_id);
             return;
         }else if(type == "not" || type == "reg" || type == "out"){
             supportV = left_child->getSupportV();
             NISupportV = left_child->getNISupportV();
-            // uniqueM = left_child->getUniqueM();
             perfectM = left_child->getPerfectM();
 
         }else /*if(type == "and" || type == "nand" || type == "or" || type == "nor")*/{
@@ -244,16 +236,6 @@ public:
             std::set<uint32_t>* nirsupp = right_child->getNISupportV();
             set_union(nilsupp, nirsupp, NISupportV);
 
-            
-            // std::set<uint32_t> *unqm_union = new std::set<uint32_t>();
-            // std::set<uint32_t> *supp_intersec = new std::set<uint32_t>();
-
-            // std::set_union(l->getUniqueM()->begin(), l->getUniqueM()->end(), r->getUniqueM()->begin(), r->getUniqueM()->end(), inserter(*unqm_union, unqm_union->begin()));
-
-            // std::set_intersection(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supp_intersec, supp_intersec->begin()));
-
-            // std::set_difference(unqm_union->begin(), unqm_union->end(), supp_intersec->begin(), supp_intersec->end(),inserter(*uniqueM, uniqueM->begin()));
-
             if (type == "xor" || type == "xnor"){
                 
                 std::set<uint32_t>* lpm = new std::set<uint32_t>();
@@ -262,10 +244,6 @@ public:
                 std::set_difference(left_child->getPerfectM()->begin(), left_child->getPerfectM()->end(), right_child->getSupportV()->begin(), right_child->getSupportV()->end(),inserter(*lpm, lpm->begin()));
                 std::set_difference(right_child->getPerfectM()->begin(), right_child->getPerfectM()->end(), left_child->getSupportV()->begin(), left_child->getSupportV()->end(),inserter(*rpm, rpm->begin()));
                 set_union(lpm, rpm, perfectM);
-
-                // std::set<uint32_t> *perfectM_union = new std::set<uint32_t>();
-                // std::set_union(l->getPerfectM()->begin(), l->getPerfectM()->end(), r->getPerfectM()->begin(), r->getPerfectM()->end(), inserter(*perfectM_union, perfectM_union->begin()));
-                // std::set_intersection(uniqueM->begin(), uniqueM->end(), perfectM_union->begin(), perfectM_union->end(), inserter(*perfectM, perfectM->begin()));
 
             }
         }
@@ -316,7 +294,6 @@ private:
     NodeContext *right_child = NULL;
     std::set<uint32_t>* NISupportV = new std::set<uint32_t>();
     std::set<uint32_t> *supportV = new std::set<uint32_t>();
-    // std::set<uint32_t> *uniqueM = new std::set<uint32_t>();
     std::set<uint32_t> *perfectM = new std::set<uint32_t>();
 
 };

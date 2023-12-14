@@ -51,12 +51,9 @@ void setLastShare(Circuit& model, std::map<int, std::vector<Node>> sharedInputs)
     for (int i = 0; i < sharedInputs.size(); ++i)
     {
         Node n = *(sharedInputs[i].rbegin());
-        //model[n].setInRandom(false);
         model[n].getPerfectM()->clear();
-        //model[n].getUniqueM()->clear();
         model[n].getSupportV()->clear();
         model[n].getPerfectM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
-        //model[n].getUniqueM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
         model[n].getSupportV()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
     }
 }
@@ -118,7 +115,6 @@ Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& shar
 }
 
 /* Circuit elaboration */
-//std::map<int, std::vector<Node>>
 std::vector<Bdd>
 Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector<Node>> sharedInputs) {
     std::vector<Node> sorted;
@@ -157,18 +153,14 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
             {
                 int secret_index = model[*node].getSharing().first;
                 int share_index = model[*node].getSharing().second;
-                // std::cout << "secret_index: " << secret_index << " share_index " << share_index << " \n";
+                
                 int last_share_id = *(sharedInputs[secret_index].begin());
-                // std::cout << "id of last share: " << last_share_id << std::endl;
-                // std::cout << "current node id:" << *node << std::endl;
+                
                 if (*node == last_share_id) {
                     sylvan::Bdd func = secrets[secret_index];
                     for (std::vector<Node>::iterator i = sharedInputs[secret_index].begin() + 1; i != sharedInputs[secret_index].end(); ++i)
                     {
-                        // std::cout << "xoring " << *i << "-th var...\n";
                         func ^= model[*i].getFunction();
-                        // std::cout << "secret_index: " << model[*i].getSharing().first << " share_index " << model[*i].getSharing().second << " \n";
-
                     }
                     model[*node].setFunction(func);
 
@@ -496,24 +488,31 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
             int probe = 0; for (int idx = 0; idx < bitmask.size(); idx++) if (bitmask[idx]) probes[probe++] = positions[idx];
 
             if (robustModel) {
-                if (verbose == 1) INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
-                if (verbose == 1) printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
                 {
                     observation &= model[probes[probe]].getRegisters();
-                    if (verbose == 1) printf("%d ", probes[probe]);
                 }
-                if (verbose == 1) printf("\n");
-                if (verbose == 1) printf("the size of secrets is %d\n", secrets.size());
-
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
-                for (int i = 0; i < extended.size(); i++){
-                    if (verbose == 1) printf("%d\n", extended[i]);
+                //print observation set
+                if (verbose == 1){
+                    printf("now the probes are %d ", probes[0]);
+                    for (int probe = 1; probe < probes.size(); probe++)
+                    {
+                        printf("%d ", probes[probe]);
+                    }
+                    printf("\n");
+                    printf("the size of secrets is %d\n", secrets.size());
+
+                    for (int i = 0; i < extended.size(); i++){
+                        printf("%d\n", extended[i]);
+                    }
+                    printf("the size of extended is %d\n", extended.size());
+                    printf("so comb is of size %d\n", 1 << extended.size());
+
                 }
-                if (verbose == 1) printf("the size of extended is %d\n", extended.size());
-                if (verbose == 1) printf("so comb is of size %d\n", 1 << extended.size());
-                for (int comb = (1 << extended.size()) - 1; comb > 0 ; comb--) {
+
+                    for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     if (comb % 1000 == 0) 
                     {
                         if (elapsedTime() > 36000.0) {
@@ -526,20 +525,17 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                         }
                     }
                     observation = sylvan::sylvan_true;
-                    for (int elem = extended.size() - 1; elem >= 0 ; elem--){
+                    for (int elem = 0; elem < extended.size(); elem++){
                         if (comb & (1 << elem)) {
-                            // INFO("\t\tanding " + str(extended[elem]) + "...\n");
                             observation &= model[extended[elem]].getFunction();
                         }
                     }
-                    // INFO("\tcomb is " + str(comb) + "\n");
-                    // printf("\tthe size of secrets is %d\n", secrets.size());
+
                     bool independent = true;
                     for (int idx = 0; idx < secrets.size() && independent; idx++) {
-                        // printf("\t\tidx = %d\n", idx);
+
                         independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
-                        //if(!independent && verbose)
-                        //    printf("idx = %d\n", idx);
+
                     }
                     //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                     if (!independent) {
@@ -552,13 +548,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 Bdd observation = model[probes[0]].getFunction();
                 for (int probe = 1; probe < probes.size(); probe++)
                     observation &= model[probes[probe]].getFunction();
-                //printf(" probes are %d ", probes[0]);
-                //for (int probe = 1; probe < probes.size(); probe++)
-                //{
-                //    // observation &= model[probes[probe]].getRegisters();
-                //    printf("%d ", probes[probe]);
-                //}
-                //printf("\n");
+
                 bool independent = true;
                 for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
                 if (!independent) return probes;
@@ -608,9 +598,9 @@ std::vector<uint32_t> simplify_ExtendedProbes(Circuit &model, std::vector<uint32
     return extended;
 }
 
-/* Partial NI Probing security */
+/* Prover: Probing security */
 std::vector<Node>
-Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose)
+Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose)
 {
     LACE_ME;
 
@@ -624,11 +614,13 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
             return true;
         return false;
     });
-    for (int i = 0; i < positions.size(); ++i)
-    {
-        if (verbose == 1) printf("%d ", positions[i]);
+    if (verbose == 1) {
+        for (int i = 0; i < positions.size(); ++i)
+        {
+            printf("%d ", positions[i]);
+        }
+        printf("\n");
     }
-    if (verbose == 1) printf("\n");
 
     int minimal = get_minimal_sharing(inputs);
     if (probingOrder == 0 || inputs[minimal].size() < 2 || inputs[minimal].size() < probingOrder) 
@@ -673,25 +665,32 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
 
             if (robustModel) {
                 total_combinations++;
-                if (verbose == 1)INFO("now the");
                 Bdd observation = model[probes[0]].getRegisters();
-                if (verbose == 1)printf(" probes are %d ", probes[0]);
                 for (int probe = 1; probe < probes.size(); probe++)
                 {
                     observation &= model[probes[probe]].getRegisters();
-                    if (verbose == 1)printf("%d ", probes[probe]);
                 }
-                if (verbose == 1)printf("\n");
-                if (verbose == 1)printf("the size of secrets is %d\n", secrets.size());
-
                 std::vector<uint32_t> extended_o = BddSet(observation).toVector();
-                if (verbose == 1)std::cout << "before simplify_ExtendedProbes: " << extended_o.size() << "\n";
-                for (int i = 0; i < extended_o.size(); i++){
-                    if (verbose == 1)printf("%d: ", extended_o[i]);
-                    if (verbose == 1)printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
-                    if (verbose == 1)printIntSet("\t supportV", model[extended_o[i]].getSupportV());
-                    //if (verbose == 1)printIntSet("\t uniqueM", model[extended_o[i]].getUniqueM());
+                if (verbose == 1){
+
+                    INFO("now the");
+                    printf(" probes are %d ", probes[0]);
+                    for (int probe = 1; probe < probes.size(); probe++)
+                    {
+                        printf("%d ", probes[probe]);
+                    }
+                    printf("\n");
+                    printf("the size of secrets is %d\n", secrets.size());
+
+                    std::cout << "before simplify_ExtendedProbes: " << extended_o.size() << "\n";
+                    for (int i = 0; i < extended_o.size(); i++){
+                        printf("%d: ", extended_o[i]);
+                        printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
+                        printIntSet("\t supportV", model[extended_o[i]].getSupportV());
+
+                    }
                 }
+                // Reduction rule 1: Uniqueness Rule
                 std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
                 std::set<uint32_t> set_of_extended;
                 if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
@@ -701,14 +700,15 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     continue;
                 }
                 for (int i = 0; i < extended.size(); i++){
-                    if (verbose == 1)printf("%d: ", extended[i]);
-
-                    if (verbose == 1)printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
-                    if (verbose == 1)printIntSet("\t supportV", model[extended[i]].getSupportV());
-                    //if (verbose == 1)printIntSet("\t uniqueM", model[extended[i]].getUniqueM());
+                    if (verbose == 1){
+                        printf("%d: ", extended[i]);
+                        printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
+                        printIntSet("\t supportV", model[extended[i]].getSupportV());
+                    }
                     set_of_extended.insert(extended[i]);
                 }
-
+                
+                // Subset strategy
                 int find_subset = 0;
                 if (verbose == 1)printf("the size of extended is %d\n", extended.size());
                 if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended)!= merged_obs.end()){
@@ -738,16 +738,12 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     }
                 }
                 if (verbose == 1)printf("so comb is of size %d\n", 1 << extended.size());
-                /**********************************************************/
+
                 observation = sylvan::sylvan_true;
                 for (int elem = 0; elem < extended.size(); elem++)
                     observation &= model[extended[elem]].getFunction();
-                /**********************************************************/
-
-                /**********************************************************/
-                /* Add code here to generate secret which are not partial NI
-                 *
-                 */
+                
+                // Reduction rule 2: NI Rule
                 ivar.clear();
                 nivar.clear();
                 std::vector<std::vector<Node>> shares(inputs.size());
@@ -772,18 +768,20 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     if (verbose == 1)printf("the set is ni, skip it and continue\n");
                     continue;
                 }
-                if (verbose == 1)std::cout << "the size of interference variables is " << ivar.size() << "\n";
-                /**********************************************************/
-                if (verbose == 1)std::cout << "i vars are: ";
-                for (pos = ivar.begin(); pos != ivar.end(); pos++){
-                    if (verbose == 1)std::cout << *pos << " ";
+                // print ivar and nivar
+                if (verbose == 1) {
+                    std::cout << "the size of interference variables is " << ivar.size() << "\n";
+                    std::cout << "i vars are: ";
+                    for (pos = ivar.begin(); pos != ivar.end(); pos++) {
+                        std::cout << *pos << " ";
+                    }
+                    printf("\n");
+                    for (pos = nivar.begin(); pos != nivar.end(); pos++) {
+                        std::cout << *pos << " ";
+                    }
+                    printf("\n");
+
                 }
-                if (verbose == 1)printf("\n");
-                if (verbose == 1)std::cout << "ni vars are: ";
-                for (pos = nivar.begin(); pos != nivar.end(); pos++){
-                    if (verbose == 1)std::cout << *pos << " ";
-                }
-                if (verbose == 1)printf("\n");
                 std::vector<uint32_t> ivar_comb;
                 for (int comb = 1; comb < (1 << ivar.size()); comb++){
                     int ivar_comb_elem = 0;
