@@ -455,7 +455,7 @@ Silver::count_BddNode(Circuit& model, std::map<int, Probes> inputs, const int pr
 
 /* Probing security */
 std::vector<Node>
-Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose)
+Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout)
 {
     LACE_ME;
 
@@ -515,7 +515,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                     for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     if (comb % 1000 == 0) 
                     {
-                        if (elapsedTime() > 36000.0) {
+                        if (elapsedTime() > timeout) {
                             printf("Time out!");
                             return probes;
                         }
@@ -600,7 +600,7 @@ std::vector<uint32_t> simplify_ExtendedProbes(Circuit &model, std::vector<uint32
 
 /* Prover: Probing security */
 std::vector<Node>
-Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose)
+Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout)
 {
     LACE_ME;
 
@@ -807,7 +807,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
                     if (comb % 1000 == 0)
                     {
-                        if (elapsedTime() > 36000.0) {
+                        if (elapsedTime() > timeout) {
                             printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                             printf("Time out!");
                             return probes;

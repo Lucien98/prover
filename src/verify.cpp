@@ -89,14 +89,20 @@ po::options_description build_argument_parser(
     ("insfile",po::value<std::string>(&cfg->INSFILE)->default_value("/home/lucien/projects/SILVER/test/aes/aes_sbox_dom1.nl"),
         "Instruction list to parse and process. Either externally provided or result of verilog parser")
 
-    ("improve_varorder", po::value<int>(&cfg->IMPROVE_VARORDER)->default_value(1),
-            "Use improved var ordering.")
+    ("varorder", po::value<int>(&cfg->VARORDER)->default_value(1),
+        "Var ordering. 1 is recommended.\n0 : original, shares as bdd variable. \n1 : secrets as bdd variables. \n2 : shares as bdd variables")
+
+    ("timeout", po::value<int>(&cfg->TIMEOUT)->default_value(365*24*3600),
+        "Exit if exceeding the time limit. The default timeout is 1 year.")
 
     ("count_node", po::value<bool>(&cfg->COUNT_NODES)->default_value(false),
-            "count the number of internal nodes in functions.")
+        "Count the number of internal nodes in functions.")
 
     ("info", po::value<bool>(&cfg->INFO)->default_value(false),
-            "Gives information about the test bench.")
+        "Gives information about the test bench.")
+
+    ("userule", po::value<bool>(&cfg->USE_RULE)->default_value(true),
+        "Check glitch-extended probing security using reductaion rules.")
 
     ;
 
@@ -200,7 +206,7 @@ int main (int argc, char * argv[]) {
     // exit(0);
     /* Elabotare circuit model */
     //std::map<int, Probes> inputs = 
-    Silver::elaborate(model, cfg.IMPROVE_VARORDER, inputs);
+    Silver::elaborate(model, cfg.VARORDER, inputs);
     if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
 
     /* Find smallest sharing */
@@ -211,10 +217,6 @@ int main (int argc, char * argv[]) {
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
 
-    // bool uniform1 = Silver::check_Uniform1(model);
-
-    // if (uniform1)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
-    // else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
 
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
@@ -225,13 +227,13 @@ int main (int argc, char * argv[]) {
         exit(0);
     }
     /* Robust probing security */
-    //probes = Silver::reduce_Probing(model, inputs, order, false, cfg.VERBOSE);
+    //probes = Silver::reduce_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT);
 
     //if (probes.size() - 1 != 0) INFO("probing.standard   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     //else                        INFO("probing.standard   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
     //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    if (cfg.IMPROVE_VARORDER == 1) {
-        probes = Silver::reduce_Probing(model, inputs, order, true, cfg.VERBOSE);
+    if (cfg.USE_RULE == 1) {
+        probes = Silver::reduce_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT);
 
         std::cout << str(elapsedTime()) << ",";
         if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
@@ -241,7 +243,7 @@ int main (int argc, char * argv[]) {
     }
 
     /* Standard probing security */
-    //probes = Silver::check_Probing(model, inputs, order, false, cfg.VERBOSE);
+    //probes = Silver::check_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT);
 
     //if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     //else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
@@ -249,7 +251,7 @@ int main (int argc, char * argv[]) {
     //exit(0);
     /* Robust probing security */
 
-    probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE);
+    probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT);
 
     std::cout << str(elapsedTime()) << ",";
     if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
