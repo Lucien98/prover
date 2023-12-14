@@ -53,10 +53,10 @@ void setLastShare(Circuit& model, std::map<int, std::vector<Node>> sharedInputs)
         Node n = *(sharedInputs[i].rbegin());
         //model[n].setInRandom(false);
         model[n].getPerfectM()->clear();
-        model[n].getUniqueM()->clear();
+        //model[n].getUniqueM()->clear();
         model[n].getSupportV()->clear();
         model[n].getPerfectM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
-        model[n].getUniqueM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
+        //model[n].getUniqueM()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
         model[n].getSupportV()->insert(sharedInputs[i].begin(), sharedInputs[i].end() - 1);
     }
 }
@@ -690,7 +690,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
                     if (verbose == 1)printf("%d: ", extended_o[i]);
                     if (verbose == 1)printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
                     if (verbose == 1)printIntSet("\t supportV", model[extended_o[i]].getSupportV());
-                    if (verbose == 1)printIntSet("\t uniqueM", model[extended_o[i]].getUniqueM());
+                    //if (verbose == 1)printIntSet("\t uniqueM", model[extended_o[i]].getUniqueM());
                 }
                 std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
                 std::set<uint32_t> set_of_extended;
@@ -705,7 +705,7 @@ Silver::check_PartialNIP(Circuit &model, std::map<int, Probes> inputs, const int
 
                     if (verbose == 1)printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
                     if (verbose == 1)printIntSet("\t supportV", model[extended[i]].getSupportV());
-                    if (verbose == 1)printIntSet("\t uniqueM", model[extended[i]].getUniqueM());
+                    //if (verbose == 1)printIntSet("\t uniqueM", model[extended[i]].getUniqueM());
                     set_of_extended.insert(extended[i]);
                 }
 

@@ -207,9 +207,9 @@ public:
         return NISupportV;
     }
 
-    std::set<uint32_t> *getUniqueM(){
-        return uniqueM;
-    }
+    // std::set<uint32_t> *getUniqueM(){
+    //     return uniqueM;
+    // }
     
     void setNodeId(uint32_t id) {
         node_id = id;
@@ -218,27 +218,18 @@ public:
     std::set<uint32_t> *getPerfectM(){
         return perfectM;
     }
-    // // Function to convert Vector to Set
-    // std::set<int> convertToSet(vector<int> v)
-    // {
-    //     // Declaring the set
-    //     // using range of vector
-    //     set<int> s(v.begin(), v.end());
-     
-    //     // Return the resultant Set
-    //     return s;
-    // }
+
     void computeAuxiliaryTable(){
         if(type == "in" || type == "ref"){
             supportV->insert(node_id);
             NISupportV->insert(node_id);
-            uniqueM->insert(node_id);
+            // uniqueM->insert(node_id);
             perfectM->insert(node_id);
             return;
         }else if(type == "not" || type == "reg" || type == "out"){
             supportV = left_child->getSupportV();
             NISupportV = left_child->getNISupportV();
-            uniqueM = left_child->getUniqueM();
+            // uniqueM = left_child->getUniqueM();
             perfectM = left_child->getPerfectM();
 
         }else /*if(type == "and" || type == "nand" || type == "or" || type == "nor")*/{
@@ -246,32 +237,36 @@ public:
             NodeContext *r = right_child;
             std::set<uint32_t> *lsupp = l->getSupportV();
             std::set<uint32_t> *rsupp = r->getSupportV();
-            // if(node_id == 749) printIntSet1("left_child NISupportV ", lsupp);
-            // if(node_id == 749) printIntSet1("right_child NISupportV ", rsupp);
+
             std::set_union(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supportV, supportV->begin()));
-            // std::vector<uint32_t> v = sylvan::BddSet(function.Support()).toVector();
-            // NISupportV = new std::set(v.begin(), v.end());
-            // if(node_id == 749) printIntSet1("l uniqueM ", l->getUniqueM());
-            // if(node_id == 749) printIntSet1("r uniqueM ", r->getUniqueM());
+
             std::set<uint32_t>* nilsupp = left_child->getNISupportV();
             std::set<uint32_t>* nirsupp = right_child->getNISupportV();
             set_union(nilsupp, nirsupp, NISupportV);
 
             
-            std::set<uint32_t> *unqm_union = new std::set<uint32_t>();
-            std::set<uint32_t> *supp_intersec = new std::set<uint32_t>();
-            // if(node_id == 749) printIntSet1("node unqm_union ", unqm_union);
-            std::set_union(l->getUniqueM()->begin(), l->getUniqueM()->end(), r->getUniqueM()->begin(), r->getUniqueM()->end(), inserter(*unqm_union, unqm_union->begin()));
-            // if(node_id == 749) printIntSet1("node unqm_union ", unqm_union);
-            std::set_intersection(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supp_intersec, supp_intersec->begin()));
-            // if(node_id == 749) printIntSet1("node supp_intersec ", supp_intersec);
-            std::set_difference(unqm_union->begin(), unqm_union->end(), supp_intersec->begin(), supp_intersec->end(),inserter(*uniqueM, uniqueM->begin()));
-            // if(node_id == 749) printIntSet1("node uniqueM ", uniqueM);
+            // std::set<uint32_t> *unqm_union = new std::set<uint32_t>();
+            // std::set<uint32_t> *supp_intersec = new std::set<uint32_t>();
+
+            // std::set_union(l->getUniqueM()->begin(), l->getUniqueM()->end(), r->getUniqueM()->begin(), r->getUniqueM()->end(), inserter(*unqm_union, unqm_union->begin()));
+
+            // std::set_intersection(lsupp->begin(), lsupp->end(), rsupp->begin(), rsupp->end(), inserter(*supp_intersec, supp_intersec->begin()));
+
+            // std::set_difference(unqm_union->begin(), unqm_union->end(), supp_intersec->begin(), supp_intersec->end(),inserter(*uniqueM, uniqueM->begin()));
+
             if (type == "xor" || type == "xnor"){
-                std::set<uint32_t> *perfectM_union = new std::set<uint32_t>();
-                std::set_union(l->getPerfectM()->begin(), l->getPerfectM()->end(), r->getPerfectM()->begin(), r->getPerfectM()->end(), inserter(*perfectM_union, perfectM_union->begin()));
-                std::set_intersection(uniqueM->begin(), uniqueM->end(), perfectM_union->begin(), perfectM_union->end(), inserter(*perfectM, perfectM->begin()));
-                // if(node_id == 749) printIntSet1("node perfectM ", perfectM);
+                
+                std::set<uint32_t>* lpm = new std::set<uint32_t>();
+                std::set<uint32_t>* rpm = new std::set<uint32_t>();
+
+                std::set_difference(left_child->getPerfectM()->begin(), left_child->getPerfectM()->end(), right_child->getSupportV()->begin(), right_child->getSupportV()->end(),inserter(*lpm, lpm->begin()));
+                std::set_difference(right_child->getPerfectM()->begin(), right_child->getPerfectM()->end(), left_child->getSupportV()->begin(), left_child->getSupportV()->end(),inserter(*rpm, rpm->begin()));
+                set_union(lpm, rpm, perfectM);
+
+                // std::set<uint32_t> *perfectM_union = new std::set<uint32_t>();
+                // std::set_union(l->getPerfectM()->begin(), l->getPerfectM()->end(), r->getPerfectM()->begin(), r->getPerfectM()->end(), inserter(*perfectM_union, perfectM_union->begin()));
+                // std::set_intersection(uniqueM->begin(), uniqueM->end(), perfectM_union->begin(), perfectM_union->end(), inserter(*perfectM, perfectM->begin()));
+
             }
         }
     }
@@ -315,18 +310,13 @@ private:
      */
     sylvan::Bdd registers;
 
-    /**
-     * @brief Key of BDD representation in function database (.fdb) file
-     */
-    // uint64_t key;
-
     /* eleminate random observation*/
     uint32_t node_id;
     NodeContext *left_child = NULL;
     NodeContext *right_child = NULL;
     std::set<uint32_t>* NISupportV = new std::set<uint32_t>();
     std::set<uint32_t> *supportV = new std::set<uint32_t>();
-    std::set<uint32_t> *uniqueM = new std::set<uint32_t>();
+    // std::set<uint32_t> *uniqueM = new std::set<uint32_t>();
     std::set<uint32_t> *perfectM = new std::set<uint32_t>();
 
 };

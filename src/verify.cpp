@@ -156,7 +156,7 @@ int main (int argc, char * argv[]) {
     bool check;
 
     /* Start LACE framework */
-    lace_init(cfg.CORES, 100000000);
+    lace_init(cfg.CORES, 0);
     lace_startup(0, NULL, NULL);
 
     /* Start BDD session */
@@ -211,10 +211,10 @@ int main (int argc, char * argv[]) {
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
 
-    bool uniform1 = Silver::check_Uniform1(model);
+    // bool uniform1 = Silver::check_Uniform1(model);
 
-    if (uniform1)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
-    else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
+    // if (uniform1)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
+    // else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
 
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
