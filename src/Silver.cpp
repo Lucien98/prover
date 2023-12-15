@@ -515,7 +515,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                     for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     if (comb % 1000 == 0) 
                     {
-                        if (elapsedTime() > timeout) {
+                        if (elapsedTime() > timeout*3600) {
                             printf("Time out!");
                             return probes;
                         }
@@ -600,7 +600,7 @@ std::vector<uint32_t> simplify_ExtendedProbes(Circuit &model, std::vector<uint32
 
 /* Prover: Probing security */
 std::vector<Node>
-Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout)
+Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout, bool onlygp)
 {
     LACE_ME;
 
@@ -807,8 +807,8 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
                     if (comb % 1000 == 0)
                     {
-                        if (elapsedTime() > timeout) {
-                            printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                        if (elapsedTime() > timeout*3600) {
+                            if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                             printf("Time out!");
                             return probes;
                         }
@@ -832,7 +832,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                     }
                     if (!independent) {
                         if (verbose == 1) printf("independent: comb = %d \n", comb);
-                        printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                        if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                         return probes;
                     }
                 }
@@ -848,7 +848,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
     }
 
-    printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+    if(onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
     return inputs[minimal];
 }
 

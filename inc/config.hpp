@@ -47,6 +47,8 @@ int		 VARORDER;
 int		 TIMEOUT;
 bool		 COUNT_NODES;
 bool		 USE_RULE;
+bool		 ONLY_GP;
+bool		 DEBUG_INFO;
 /* Instruction list (either externally provided or result of verilog parser) */
 std::string INSFILE ;
 
