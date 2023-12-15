@@ -125,7 +125,7 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
     int varorder = 0;
     std::vector<Bdd> secrets;
     for (int i = 0; i < num_secrets; i++) {
-        if (improvedVarOrder == 1 || improvedVarOrder == 2) secrets.push_back(sylvan_ithvar(i));
+        if (improvedVarOrder == 1) secrets.push_back(sylvan_ithvar(i));
         varorder++;
     }
 
@@ -149,7 +149,7 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
         }
         model[*node].clearVariables();
         if (model[*node].getType() == "in") {
-            if (improvedVarOrder == 1 || improvedVarOrder == 2)
+            if (improvedVarOrder == 1)
             {
                 int secret_index = model[*node].getSharing().first;
                 int share_index = model[*node].getSharing().second;
@@ -169,7 +169,7 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
                     model[*node].setFunction(sylvan_ithvar(varorder++));
                 }
             }
-            else if (improvedVarOrder == 3) {
+            else if (improvedVarOrder == 2) {
                     std::pair<int, int> shr = model[*node].getSharing();
                     int ith = shr.first * num_shares + shr.second;
                     // std::cout << ith << std::endl;
@@ -512,7 +512,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
 
                 }
 
-                    for (int comb = 1; comb < (1 << extended.size()); comb++) {
+                for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     if (comb % 1000 == 0) 
                     {
                         if (elapsedTime() > timeout*3600) {
@@ -600,20 +600,20 @@ std::vector<uint32_t> simplify_ExtendedProbes(Circuit &model, std::vector<uint32
 
 /* Prover: Probing security */
 std::vector<Node>
-Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout, bool onlygp)
+Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout, bool onlygp, bool useSubset)
 {
     LACE_ME;
 
     std::vector<long unsigned int> positions = (robustModel) ? get_nodes_of_types(model, rprobes) : get_nodes_of_types(model, sprobes);
-
-    std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
-    {
-        int len1 = BddSet(model[n1].getRegisters()).toVector().size();
-        int len2 = BddSet(model[n2].getRegisters()).toVector().size();
-        if (len1 > len2)
-            return true;
-        return false;
-    });
+    if (useSubset)
+        std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
+        {
+            int len1 = BddSet(model[n1].getRegisters()).toVector().size();
+            int len2 = BddSet(model[n2].getRegisters()).toVector().size();
+            if (len1 > len2)
+                return true;
+            return false;
+        });
     if (verbose == 1) {
         for (int i = 0; i < positions.size(); ++i)
         {
@@ -709,32 +709,36 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 }
                 
                 // Subset strategy
-                int find_subset = 0;
-                if (verbose == 1)printf("the size of extended is %d\n", extended.size());
-                if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended)!= merged_obs.end()){
-                    if (verbose == 1)printf("this set has already been checked, we skip it to continue\n");
-                    continue;
-                }
-                else
+                if(useSubset)
                 {
-                    for (int i = 0; i < merged_obs.size(); ++i)
-                    {
-                        std::set<uint32_t> diff;
-                        std::set_difference(set_of_extended.begin(), set_of_extended.end(), merged_obs[i].begin(), merged_obs[i].end(), inserter(diff, diff.begin()));
-                        if (diff.size() == 0)
-                        {
-                            num_subset++;
-                            find_subset = 1;
-                            if (verbose == 1)printf("find %d-th subset, skip it and continue\n", num_subset);
-                            break;
-                        }
-
+                    int find_subset = 0;
+                    if (verbose == 1)printf("the size of extended is %d\n", extended.size());
+                    if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended) != merged_obs.end()) {
+                        if (verbose == 1)printf("this set has already been checked, we skip it to continue\n");
+                        continue;
                     }
-                    if (find_subset == 1)
+                    else
                     {
-                        continue;  
-                    }else{
-                        merged_obs.push_back(set_of_extended);                        
+                        for (int i = 0; i < merged_obs.size(); ++i)
+                        {
+                            std::set<uint32_t> diff;
+                            std::set_difference(set_of_extended.begin(), set_of_extended.end(), merged_obs[i].begin(), merged_obs[i].end(), inserter(diff, diff.begin()));
+                            if (diff.size() == 0)
+                            {
+                                num_subset++;
+                                find_subset = 1;
+                                if (verbose == 1)printf("find %d-th subset, skip it and continue\n", num_subset);
+                                break;
+                            }
+
+                        }
+                        if (find_subset == 1)
+                        {
+                            continue;
+                        }
+                        else {
+                            merged_obs.push_back(set_of_extended);
+                        }
                     }
                 }
                 if (verbose == 1)printf("so comb is of size %d\n", 1 << extended.size());

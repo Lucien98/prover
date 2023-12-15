@@ -1,5 +1,5 @@
-# Prover - Improved SILVER
-Prover is a tool based on [SILVER](https://github.com/Chair-for-Security-Engineering/SILVER/) (commit `57fd89b713f627a8b6855e02d10abe02474777e5`). It can efficiently check the glitch-extended probing security of a given netlist.
+# Prover
+Prover (**Pro**bing Security **Ver**ifier) is a tool based on [SILVER](https://github.com/Chair-for-Security-Engineering/SILVER/) (commit `57fd89b713f627a8b6855e02d10abe02474777e5`). It can efficiently verify the glitch-extended probing security of a given netlist.
 
 
 

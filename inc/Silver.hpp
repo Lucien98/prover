@@ -75,7 +75,7 @@ public:
 
     static std::vector<Node> check_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout);
 
-    static std::vector<Node> reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout, bool onlygp);
+    static std::vector<Node> reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel, int verbose, int timeout, bool onlygp, bool useSubset);
 
     static std::vector<Node> check_NI(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel);
 

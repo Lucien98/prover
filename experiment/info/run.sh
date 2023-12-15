@@ -1,5 +1,5 @@
 # run `bash experiment/run.sh` in root folder of the project
-find test -name *.nl > experiment/info/benchs.txt
+# find test -name *.nl > experiment/info/benchs.txt
 
 while read line;
 do

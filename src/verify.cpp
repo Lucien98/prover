@@ -65,7 +65,7 @@ po::options_description build_argument_parser(
     ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(0),
         "Maximum number of CPU cores to use. Set to 0 (default) for auto-detect")
 
-    ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(1*1024*1024*1024ull),
+    ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(8*1024*1024*1024ull),
         "RAM (in Bytes) used by Sylvan BDD library.")
 
     ("verbose", po::value<bool>(&cfg->VERBOSE)->default_value(true),
@@ -103,6 +103,9 @@ po::options_description build_argument_parser(
 
     ("userule", po::value<bool>(&cfg->USE_RULE)->default_value(true),
         "Check glitch-extended probing security using reductaion rules.")
+
+    ("usesubset", po::value<bool>(&cfg->USE_SUBSET)->default_value(true),
+        "Enabling the use of subset strategy.")
 
     ("onlygp", po::value<bool>(&cfg->ONLY_GP)->default_value(false),
         "Only check glitch-extended probing security (for the purpose of comparing Prover and SILVER).")
@@ -199,7 +202,7 @@ int main (int argc, char * argv[]) {
         }
     }
     ///* Parse circuit from text file*/
-    if (!cfg.ONLY_GP) INFO("Netlist: " + dut + "\n");
+    if (!cfg.ONLY_GP || !cfg.COUNT_NODES) INFO("Netlist: " + dut + "\n");
     std::map<int, Probes> inputs;
     model = Silver::parse(dut, inputs);
     if (cfg.INFO) {
@@ -232,7 +235,7 @@ int main (int argc, char * argv[]) {
     }
     if (cfg.ONLY_GP) {
         if (cfg.USE_RULE == 1) {
-            probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP);
+            probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
         }
         else {
             probes = Silver::check_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT);
@@ -252,7 +255,7 @@ int main (int argc, char * argv[]) {
     if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
 
     /* Robust probing security */
-    probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP);
+    probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
 
     if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
@@ -310,7 +313,7 @@ int main (int argc, char * argv[]) {
     model.clear();
 
     /* Terminate BDD session */
-    sylvan::sylvan_stats_report(stdout);
+    if (cfg.DEBUG_INFO) sylvan::sylvan_stats_report(stdout);
     sylvan::sylvan_quit();
 
     lace_exit();
