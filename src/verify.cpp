@@ -202,7 +202,7 @@ int main (int argc, char * argv[]) {
         }
     }
     ///* Parse circuit from text file*/
-    if (!cfg.ONLY_GP || !cfg.COUNT_NODES) INFO("Netlist: " + dut + "\n");
+    if ((!cfg.ONLY_GP || !cfg.COUNT_NODES) && cfg.VERBOSE) INFO("Netlist: " + dut + "\n");
     std::map<int, Probes> inputs;
     model = Silver::parse(dut, inputs);
     if (cfg.INFO) {
