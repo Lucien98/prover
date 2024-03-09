@@ -662,193 +662,198 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             for (int idx = 0; idx < bitmask.size(); idx++) 
                 if (bitmask[idx]) 
                     probes[probe++] = positions[idx];
-
+            Bdd observation; 
+            std::vector<uint32_t> extended_o;
             if (robustModel) {
                 total_combinations++;
-                Bdd observation = model[probes[0]].getRegisters();
+                observation = model[probes[0]].getRegisters();
                 for (int probe = 1; probe < probes.size(); probe++)
                 {
                     observation &= model[probes[probe]].getRegisters();
                 }
-                std::vector<uint32_t> extended_o = BddSet(observation).toVector();
-                if (verbose == 1){
+                extended_o = BddSet(observation).toVector();
+            }
+            else {
+                //observation = model[probes[0]].getFunction();
+                for (int probe = 0; probe < probes.size(); probe++)
+                    extended_o.push_back(probes[0]);
+                    //observation &= model[probes[probe]].getFunction();
+                //bool independent = true;
+                //for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
+                //if (!independent) return probes;
+            }
 
-                    INFO("now the");
-                    printf(" probes are %d ", probes[0]);
-                    for (int probe = 1; probe < probes.size(); probe++)
-                    {
-                        printf("%d ", probes[probe]);
-                    }
-                    printf("\n");
-                    printf("the size of secrets is %d\n", secrets.size());
+            //std::vector<uint32_t> extended_o = BddSet(observation).toVector();
+            if (verbose == 1){
 
-                    std::cout << "before simplify_ExtendedProbes: " << extended_o.size() << "\n";
-                    for (int i = 0; i < extended_o.size(); i++){
-                        printf("%d: ", extended_o[i]);
-                        printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
-                        printIntSet("\t supportV", model[extended_o[i]].getSupportV());
-
-                    }
+                INFO("now the");
+                printf(" probes are %d ", probes[0]);
+                for (int probe = 1; probe < probes.size(); probe++)
+                {
+                    printf("%d ", probes[probe]);
                 }
-                // Reduction rule 1: Uniqueness Rule
-                std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
-                std::set<uint32_t> set_of_extended;
-                if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
-                if (0 == extended.size()) {
-                    if (verbose) std::cout << "This set is reduced to empty set using reductaion rule, continue" << std::endl;
-                    number_rule++;
+                printf("\n");
+                printf("the size of secrets is %d\n", secrets.size());
+
+                std::cout << "before simplify_ExtendedProbes: " << extended_o.size() << "\n";
+                for (int i = 0; i < extended_o.size(); i++){
+                    printf("%d: ", extended_o[i]);
+                    printIntSet("\n\t perfectM", model[extended_o[i]].getPerfectM());
+                    printIntSet("\t supportV", model[extended_o[i]].getSupportV());
+
+                }
+            }
+            // Reduction rule 1: Uniqueness Rule
+            std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
+            std::set<uint32_t> set_of_extended;
+            if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
+            if (0 == extended.size()) {
+                if (verbose) std::cout << "This set is reduced to empty set using reductaion rule, continue" << std::endl;
+                number_rule++;
+                continue;
+            }
+            for (int i = 0; i < extended.size(); i++){
+                if (verbose == 1){
+                    printf("%d: ", extended[i]);
+                    printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
+                    printIntSet("\t supportV", model[extended[i]].getSupportV());
+                }
+                set_of_extended.insert(extended[i]);
+            }
+                
+            // Subset strategy
+            if(useSubset)
+            {
+                int find_subset = 0;
+                if (verbose == 1)printf("the size of extended is %d\n", extended.size());
+                if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended) != merged_obs.end()) {
+                    if (verbose == 1)printf("this set has already been checked, we skip it to continue\n");
                     continue;
                 }
-                for (int i = 0; i < extended.size(); i++){
-                    if (verbose == 1){
-                        printf("%d: ", extended[i]);
-                        printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
-                        printIntSet("\t supportV", model[extended[i]].getSupportV());
-                    }
-                    set_of_extended.insert(extended[i]);
-                }
-                
-                // Subset strategy
-                if(useSubset)
+                else
                 {
-                    int find_subset = 0;
-                    if (verbose == 1)printf("the size of extended is %d\n", extended.size());
-                    if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended) != merged_obs.end()) {
-                        if (verbose == 1)printf("this set has already been checked, we skip it to continue\n");
+                    for (int i = 0; i < merged_obs.size(); ++i)
+                    {
+                        std::set<uint32_t> diff;
+                        std::set_difference(set_of_extended.begin(), set_of_extended.end(), merged_obs[i].begin(), merged_obs[i].end(), inserter(diff, diff.begin()));
+                        if (diff.size() == 0)
+                        {
+                            num_subset++;
+                            find_subset = 1;
+                            if (verbose == 1)printf("find %d-th subset, skip it and continue\n", num_subset);
+                            break;
+                        }
+
+                    }
+                    if (find_subset == 1)
+                    {
                         continue;
                     }
-                    else
-                    {
-                        for (int i = 0; i < merged_obs.size(); ++i)
-                        {
-                            std::set<uint32_t> diff;
-                            std::set_difference(set_of_extended.begin(), set_of_extended.end(), merged_obs[i].begin(), merged_obs[i].end(), inserter(diff, diff.begin()));
-                            if (diff.size() == 0)
-                            {
-                                num_subset++;
-                                find_subset = 1;
-                                if (verbose == 1)printf("find %d-th subset, skip it and continue\n", num_subset);
-                                break;
-                            }
-
-                        }
-                        if (find_subset == 1)
-                        {
-                            continue;
-                        }
-                        else {
-                            merged_obs.push_back(set_of_extended);
-                        }
+                    else {
+                        merged_obs.push_back(set_of_extended);
                     }
                 }
-                if (verbose == 1)printf("so comb is of size %d\n", 1 << extended.size());
+            }
+            if (verbose == 1)printf("so comb is of size %d\n", 1 << extended.size());
 
-                observation = sylvan::sylvan_true;
-                for (int elem = 0; elem < extended.size(); elem++)
-                    observation &= model[extended[elem]].getFunction();
+            //observation = sylvan::sylvan_true;
+            //for (int elem = 0; elem < extended.size(); elem++)
+            //    observation &= model[extended[elem]].getFunction();
                 
-                // Reduction rule 2: NI Rule
-                ivar.clear();
-                nivar.clear();
-                std::vector<std::vector<Node>> shares(inputs.size());
-                std::set<uint32_t> vars;
-                for (int i = 0; i < extended.size(); i++) {
-                    vars.insert(model[ extended[i]].getNISupportV()->begin(), model[extended[i]].getNISupportV()->end());
-                }
-                std::vector<uint32_t> variables(vars.begin(),vars.end());// = BddSet(observation.Support()).toVector();
-                for (int var = variables.size() - 1; var >= 0; var--) {
-                    for (int idx = inputs.size() - 1; idx >= 0; idx--) {
-                        if (std::find(inputs[idx].begin(), inputs[idx].end(), variables[var]) != inputs[idx].end()) {
-                            shares[idx].push_back(variables[var]); 
-                            if (shares[idx].size() == num_share){
-                                ivar.insert(idx);
-                            }
+            // Reduction rule 2: NI Rule
+            ivar.clear();
+            nivar.clear();
+            std::vector<std::vector<Node>> shares(inputs.size());
+            std::set<uint32_t> vars;
+            for (int i = 0; i < extended.size(); i++) {
+                vars.insert(model[ extended[i]].getNISupportV()->begin(), model[extended[i]].getNISupportV()->end());
+            }
+            std::vector<uint32_t> variables(vars.begin(),vars.end());// = BddSet(observation.Support()).toVector();
+            for (int var = variables.size() - 1; var >= 0; var--) {
+                for (int idx = inputs.size() - 1; idx >= 0; idx--) {
+                    if (std::find(inputs[idx].begin(), inputs[idx].end(), variables[var]) != inputs[idx].end()) {
+                        shares[idx].push_back(variables[var]); 
+                        if (shares[idx].size() == num_share){
+                            ivar.insert(idx);
                         }
                     }
                 }
-                // nivar = 
-                std::set_difference(inputs_set.begin(), inputs_set.end(), ivar.begin(), ivar.end(), std::inserter(nivar, nivar.begin()));
-                if (ivar.size() == 0) {
-                    if (verbose == 1)printf("the set is ni, skip it and continue\n");
-                    continue;
+            }
+            // nivar = 
+            std::set_difference(inputs_set.begin(), inputs_set.end(), ivar.begin(), ivar.end(), std::inserter(nivar, nivar.begin()));
+            if (ivar.size() == 0) {
+                if (verbose == 1)printf("the set is ni, skip it and continue\n");
+                continue;
+            }
+            // print ivar and nivar
+            if (verbose == 1) {
+                std::cout << "the size of interference variables is " << ivar.size() << "\n";
+                std::cout << "i vars are: ";
+                for (pos = ivar.begin(); pos != ivar.end(); pos++) {
+                    std::cout << *pos << " ";
                 }
-                // print ivar and nivar
-                if (verbose == 1) {
-                    std::cout << "the size of interference variables is " << ivar.size() << "\n";
-                    std::cout << "i vars are: ";
-                    for (pos = ivar.begin(); pos != ivar.end(); pos++) {
-                        std::cout << *pos << " ";
-                    }
-                    printf("\n");
-                    for (pos = nivar.begin(); pos != nivar.end(); pos++) {
-                        std::cout << *pos << " ";
-                    }
-                    printf("\n");
+                printf("\n");
+                for (pos = nivar.begin(); pos != nivar.end(); pos++) {
+                    std::cout << *pos << " ";
+                }
+                printf("\n");
 
+            }
+            std::vector<uint32_t> ivar_comb;
+            for (int comb = 1; comb < (1 << ivar.size()); comb++){
+                int ivar_comb_elem = 0;
+                pos = ivar.begin();
+                for (int elem = 0; elem < ivar.size(); elem++, pos++){
+                    if (comb & (1 << elem)){
+                        ivar_comb_elem ^= (1 << *pos);
+                    }
                 }
-                std::vector<uint32_t> ivar_comb;
-                for (int comb = 1; comb < (1 << ivar.size()); comb++){
-                    int ivar_comb_elem = 0;
-                    pos = ivar.begin();
+                std::vector<uint32_t> ivar_vec(ivar.begin(), ivar.end());
+                if (ivarToSec_indexMap.count(ivar_comb_elem) == 0){
+                    secrets_comb[curr_secret_id] = Bdd::bddOne();
                     for (int elem = 0; elem < ivar.size(); elem++, pos++){
                         if (comb & (1 << elem)){
-                            ivar_comb_elem ^= (1 << *pos);
+                            secrets_comb[curr_secret_id] &= secrets[ivar_vec[elem]];
                         }
                     }
-                    std::vector<uint32_t> ivar_vec(ivar.begin(), ivar.end());
-                    if (ivarToSec_indexMap.count(ivar_comb_elem) == 0){
-                        secrets_comb[curr_secret_id] = Bdd::bddOne();
-                        for (int elem = 0; elem < ivar.size(); elem++, pos++){
-                            if (comb & (1 << elem)){
-                                secrets_comb[curr_secret_id] &= secrets[ivar_vec[elem]];
-                            }
-                        }
-                        ivarToSec_indexMap.insert({ ivar_comb_elem, curr_secret_id++});
-                    }
-                    ivar_comb.push_back(ivar_comb_elem);
+                    ivarToSec_indexMap.insert({ ivar_comb_elem, curr_secret_id++});
                 }
-                if (verbose == 1)printf("\n");
-                for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
-                    if (comb % 1000 == 0)
-                    {
-                        if (elapsedTime() > timeout*3600) {
-                            if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
-                            printf("Time out!");
-                            return probes;
-                        }
-                        if (verbose == 1) {
-                            INFO("");
-                            printf("\tcomb = %d\n", comb);
-                        }
-                    }
-                    observation = sylvan::sylvan_true;
-                    for (int elem = extended.size() - 1; elem >=0 ; elem--)
-                        if (comb & (1 << elem)) {
-                            observation &= model[extended[elem]].getFunction();
-                        }
-                    bool independent = true;
-                    for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
-                        independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
-                        if(!independent && verbose){
-                            printf("idx = %d\n", ivar_comb[idx]);
-                            printf("curr_secret_id = %d\n", ivarToSec_indexMap[ivar_comb[idx]]);
-                        }
-                    }
-                    if (!independent) {
-                        if (verbose == 1) printf("independent: comb = %d \n", comb);
+                ivar_comb.push_back(ivar_comb_elem);
+            }
+            if (verbose == 1)printf("\n");
+            for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
+                if (comb % 1000 == 0)
+                {
+                    if (elapsedTime() > timeout*3600) {
                         if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                        printf("Time out!");
                         return probes;
                     }
+                    if (verbose == 1) {
+                        INFO("");
+                        printf("\tcomb = %d\n", comb);
+                    }
                 }
-                if (verbose == 1)printf("\n");
-            } else {
-                Bdd observation = model[probes[0]].getFunction();
-                for (int probe = 1; probe < probes.size(); probe++)
-                    observation &= model[probes[probe]].getFunction();
+                observation = sylvan::sylvan_true;
+                for (int elem = extended.size() - 1; elem >=0 ; elem--)
+                    if (comb & (1 << elem)) {
+                        observation &= model[extended[elem]].getFunction();
+                    }
                 bool independent = true;
-                for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
-                if (!independent) return probes;
+                for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
+                    independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
+                    if(!independent && verbose){
+                        printf("idx = %d\n", ivar_comb[idx]);
+                        printf("curr_secret_id = %d\n", ivarToSec_indexMap[ivar_comb[idx]]);
+                    }
+                }
+                if (!independent) {
+                    if (verbose == 1) printf("independent: comb = %d \n", comb);
+                    if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                    return probes;
+                }
             }
+            if (verbose == 1)printf("\n");
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
     }
 

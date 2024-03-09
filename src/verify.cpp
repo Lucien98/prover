@@ -248,7 +248,7 @@ int main (int argc, char * argv[]) {
     }
 
     /* Standard probing security */
-    probes = Silver::check_Probing(model, inputs, order, false, cfg.DEBUG_INFO, cfg.TIMEOUT);
+    probes = Silver::reduce_Probing(model, inputs, order, false, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
 
     if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
     else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
