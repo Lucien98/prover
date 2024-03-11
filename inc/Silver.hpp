@@ -94,8 +94,8 @@ private:
     static void inter_vector_combinations_and(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, std::vector<sylvan::Bdd> &inter);
     static bool inter_vector_combinations_xor(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, int varcount);
 
-    static bool inter_vector_combinations_xor1(Circuit& model, const std::vector<std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount, int hw);
-
+    static bool inter_vector_combinations_xor1(Circuit& model, const std::vector<std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount);
+ 
     static int hammingWeight(int x);
 
     static bool inter_vector_combinations_and1(const std::vector<std::vector<sylvan::Bdd>>& intra, int offset, sylvan::Bdd combination, int varcount, int hw);

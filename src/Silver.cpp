@@ -438,25 +438,34 @@ Silver::check_Uniform2(Circuit& model)
 
     }
     else {
-        std::map<int, std::vector<Node>> shares;
+        std::map<int, std::vector<uint32_t>> shares;
         for (auto node = vertices(model).first; node != vertices(model).second; node++) {
             if (model[*node].getType() == "out") shares[model[*node].getSharing().first].push_back(*node);
         }
 
-        std::vector< std::vector<std::vector<uint32_t>>> intra(shares.size(), std::vector<std::vector<uint32_t>>(((1 << shares[0].size()) - 1)));
-        //std::vector< std::vector<std::vector<uint32_t>>> intra(shares.size());
+        //std::vector< std::vector<std::vector<uint32_t>>> intra(shares.size(), std::vector<std::vector<uint32_t>>(((1 << shares[0].size()) - 1)));
+        std::vector< std::vector<std::vector<uint32_t>>> intra;
+        
+        
         for (int idx = 0; idx < shares.size(); idx++) {
-            for (int comb = 1; comb < ((1 << shares[idx].size()) - 1); comb++) {
-                intra[idx][comb-1].clear();
-
-                for (int elem = 0; elem < shares[idx].size(); elem++) {
-                    if (comb & (1 << elem)) intra[idx][comb-1].push_back(shares[idx][elem]);
-                }
-                /* if (abs(mtbdd_satcountln(intra[idx].back().GetBDD(), varcount) - varcount + 1) > DOUBLE_COMPARE_THRESHOLD) return false;*/
+            std::vector<std::vector<uint32_t>> comb_hw_d;
+            for (int i = 0; i < shares[idx].size(); i++) {
+                std::vector<uint32_t> vec(shares[idx]);
+                vec.erase(vec.begin() + i);
+                comb_hw_d.push_back(vec);
             }
+            intra.push_back(comb_hw_d);
+            //for (int comb = 1; comb < ((1 << shares[idx].size()) - 1); comb++) {
+            //    intra[idx][comb-1].clear();
+
+            //    for (int elem = 0; elem < shares[idx].size(); elem++) {
+            //        if (comb & (1 << elem)) intra[idx][comb-1].push_back(shares[idx][elem]);
+            //    }
+            //    /* if (abs(mtbdd_satcountln(intra[idx].back().GetBDD(), varcount) - varcount + 1) > DOUBLE_COMPARE_THRESHOLD) return false;*/
+            //}
         }
         std::vector<uint32_t> empty;
-        return inter_vector_combinations_xor1(model, intra, 0, empty, varcount, 0);
+        return inter_vector_combinations_xor1(model, intra, 0, empty, varcount);
     }
 }
 
@@ -1576,8 +1585,9 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
 
     return true;
 }
+
 bool
-Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount, int hw)
+Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount)
 {
     LACE_ME;
 
@@ -1588,7 +1598,7 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
             for (int i = 0; i < intra[offset][idx].size(); i++) {
                 combination.push_back(intra[offset][idx][i]);
             }
-            balanced &= inter_vector_combinations_xor1(model, intra, offset + 1, combination , varcount, hw + hammingWeight(idx + 1));
+            balanced &= inter_vector_combinations_xor1(model, intra, offset + 1, combination , varcount);
             for (int i = 0; i < intra[offset][idx].size(); i++) {
                 combination.pop_back();
             }
@@ -1596,18 +1606,19 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
         if (!balanced) return false;
     }
     else {
-        double p;// = mtbdd_satcountln(combination.GetBDD(), varcount);
+        //printf("%d\n", combination.size());
         std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
         if (reduced.size() == 0) {
+            //printf("red\n");
             return true;
         }
         else {
             Bdd observation = sylvan::sylvan_false;
             for (int elem = 0; elem < reduced.size(); elem++)
                 observation ^= model[reduced[elem]].getFunction();
+            //printf("robdd\n");
             return (abs(mtbdd_satcountln(observation.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
         }
-        //return (abs(p - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
     }
 
     return true;
