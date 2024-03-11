@@ -109,6 +109,8 @@ po::options_description build_argument_parser(
 
     ("onlygp", po::value<bool>(&cfg->ONLY_GP)->default_value(false),
         "Only check glitch-extended probing security (for the purpose of comparing Prover and SILVER).")
+    ("prover", po::value<bool>(&cfg->PROVER)->default_value(true),
+        "Use Prover rather than SILVER.")
 
     ("debuginfo", po::value<bool>(&cfg->DEBUG_INFO)->default_value(false),
         "Show intermediate information during verification")
@@ -248,18 +250,23 @@ int main (int argc, char * argv[]) {
     }
 
     /* Standard probing security */
-    probes = Silver::reduce_Probing(model, inputs, order, false, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
-
-    if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
+    // if (cfg.PROVER)
+    //     probes = Silver::reduce_Probing(model, inputs, order, false, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
+    // else
+    //     probes = Silver::check_Probing(model, inputs, order, false, cfg.DEBUG_INFO, cfg.TIMEOUT);
+    // if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    // else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
 
     /* Robust probing security */
-    probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
+    //if (cfg.PROVER)
+    //    probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
+    //else
+    //    probes = Silver::check_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT);
 
-    if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
+    //if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+    //else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+    //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
 
     /* Standard non-interference */
     // probes = Silver::check_NI(model, inputs, order, false);
@@ -304,7 +311,9 @@ int main (int argc, char * argv[]) {
     // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
 
     /* Standard uniformity check */
-    bool uniform = Silver::check_Uniform(model);
+    bool uniform;
+    if (cfg.PROVER) uniform = Silver::check_Uniform2(model);
+    else uniform = Silver::check_Uniform(model);
 
     if (uniform)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
     else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");

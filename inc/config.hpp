@@ -49,6 +49,7 @@ bool		 COUNT_NODES;
 bool		 USE_RULE;
 bool		 USE_SUBSET;
 bool		 ONLY_GP;
+bool		 PROVER;
 bool		 DEBUG_INFO;
 /* Instruction list (either externally provided or result of verilog parser) */
 std::string INSFILE ;

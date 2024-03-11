@@ -244,7 +244,7 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
 
 /* Uniformity check */
 bool
-Silver::check_Uniform(Circuit &model)
+Silver::check_Uniform(Circuit& model)
 {
     LACE_ME;
 
@@ -293,7 +293,8 @@ Silver::check_Uniform(Circuit &model)
 
         return (mtbdd_satcountln(states.GetBDD(), outputs.size()) == outputs.size());
 
-    } else {
+    }
+    else {
         std::map<int, std::vector<Node>> shares;
         for (auto node = vertices(model).first; node != vertices(model).second; node++) {
             if (model[*node].getType() == "out") shares[model[*node].getSharing().first].push_back(*node);
@@ -313,6 +314,151 @@ Silver::check_Uniform(Circuit &model)
         return inter_vector_combinations_xor(intra, 0, Bdd::bddZero(), varcount);
     }
 }
+bool
+Silver::check_Uniform3(Circuit& model)
+{
+    LACE_ME;
+
+    int varcount = 0;
+    for (auto node = vertices(model).first; node != vertices(model).second; node++)
+        if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+
+    std::vector<Bdd> inputs, outputs;
+    for (auto gate = vertices(model).first; gate != vertices(model).second; ++gate) {
+        if (model[*gate].getType() == "in" || model[*gate].getType() == "ref") inputs.push_back(model[*gate].getFunction());
+        if (model[*gate].getType() == "out") outputs.push_back(model[*gate].getFunction());
+    }
+
+    if (inputs.size() == outputs.size()) {
+
+        std::vector<uint32_t> from(inputs.size()), to(inputs.size());
+        for (int index = 0; index < inputs.size(); index++) {
+            from[index] = inputs[index].TopVar(); to[index] = 2 * index;
+        }
+
+        std::vector<Bdd> relations(outputs.size());
+        std::vector<BddSet> variables(outputs.size());
+
+        for (int index = 0; index < outputs.size(); index++) {
+            relations[index] = (outputs[index].Permute(from, to) ^ sylvan_nithvar(2 * index + 1));
+            variables[index] = (outputs[index].Support());
+        }
+
+        for (int index = relations.size() - 1; index >= 0; index--) {
+            for (int r = 0; r < index; r++) {
+                BddSet curr = variables[r]; curr.remove(variables[index]);
+
+                if (curr.size() != variables[r].size()) {
+
+                    relations[r] &= relations[index]; relations.erase(relations.begin() + index);
+                    variables[r].add(variables[index]); variables.erase(variables.begin() + index);
+                    break;
+                }
+            }
+        }
+
+        Bdd states = Bdd::bddOne().RelNext(relations[0], BddSet(sylvan_false));
+        for (int index = 1; index < relations.size(); index++) {
+            states &= Bdd::bddOne().RelNext(relations[index], BddSet(sylvan_false));
+        }
+
+        return (mtbdd_satcountln(states.GetBDD(), outputs.size()) == outputs.size());
+
+    }
+    else {
+        std::map<int, std::vector<Node>> shares;
+        for (auto node = vertices(model).first; node != vertices(model).second; node++) {
+            if (model[*node].getType() == "out") shares[model[*node].getSharing().first].push_back(*node);
+        }
+
+        std::vector<std::vector<Bdd>> intra(shares.size());
+        for (int idx = 0; idx < shares.size(); idx++) {
+            for (int comb = 1; comb < ((1 << shares[idx].size()) - 1); comb++) {
+                intra[idx].push_back(sylvan::sylvan_true);
+                for (int elem = 0; elem < shares[idx].size(); elem++) {
+                    if (comb & (1 << elem)) intra[idx].back() &= model[shares[idx][elem]].getFunction();
+                }
+                /* if (abs(mtbdd_satcountln(intra[idx].back().GetBDD(), varcount) - varcount + 1) > DOUBLE_COMPARE_THRESHOLD) return false;*/
+            }
+        }
+
+        return inter_vector_combinations_and1(intra, 0, Bdd::bddOne(), varcount, 0);
+    }
+}
+
+bool
+Silver::check_Uniform2(Circuit& model)
+{
+    LACE_ME;
+
+    int varcount = 0;
+    for (auto node = vertices(model).first; node != vertices(model).second; node++)
+        if (model[*node].getType() == "in" || model[*node].getType() == "ref") varcount++;
+
+    std::vector<Bdd> inputs, outputs;
+    for (auto gate = vertices(model).first; gate != vertices(model).second; ++gate) {
+        if (model[*gate].getType() == "in" || model[*gate].getType() == "ref") inputs.push_back(model[*gate].getFunction());
+        if (model[*gate].getType() == "out") outputs.push_back(model[*gate].getFunction());
+    }
+
+    if (inputs.size() == outputs.size()) {
+
+        std::vector<uint32_t> from(inputs.size()), to(inputs.size());
+        for (int index = 0; index < inputs.size(); index++) {
+            from[index] = inputs[index].TopVar(); to[index] = 2 * index;
+        }
+
+        std::vector<Bdd> relations(outputs.size());
+        std::vector<BddSet> variables(outputs.size());
+
+        for (int index = 0; index < outputs.size(); index++) {
+            relations[index] = (outputs[index].Permute(from, to) ^ sylvan_nithvar(2 * index + 1));
+            variables[index] = (outputs[index].Support());
+        }
+
+        for (int index = relations.size() - 1; index >= 0; index--) {
+            for (int r = 0; r < index; r++) {
+                BddSet curr = variables[r]; curr.remove(variables[index]);
+
+                if (curr.size() != variables[r].size()) {
+
+                    relations[r] &= relations[index]; relations.erase(relations.begin() + index);
+                    variables[r].add(variables[index]); variables.erase(variables.begin() + index);
+                    break;
+                }
+            }
+        }
+
+        Bdd states = Bdd::bddOne().RelNext(relations[0], BddSet(sylvan_false));
+        for (int index = 1; index < relations.size(); index++) {
+            states &= Bdd::bddOne().RelNext(relations[index], BddSet(sylvan_false));
+        }
+
+        return (mtbdd_satcountln(states.GetBDD(), outputs.size()) == outputs.size());
+
+    }
+    else {
+        std::map<int, std::vector<Node>> shares;
+        for (auto node = vertices(model).first; node != vertices(model).second; node++) {
+            if (model[*node].getType() == "out") shares[model[*node].getSharing().first].push_back(*node);
+        }
+
+        std::vector< std::vector<std::vector<uint32_t>>> intra(shares.size(), std::vector<std::vector<uint32_t>>(((1 << shares[0].size()) - 1)));
+        //std::vector< std::vector<std::vector<uint32_t>>> intra(shares.size());
+        for (int idx = 0; idx < shares.size(); idx++) {
+            for (int comb = 1; comb < ((1 << shares[idx].size()) - 1); comb++) {
+                intra[idx][comb-1].clear();
+
+                for (int elem = 0; elem < shares[idx].size(); elem++) {
+                    if (comb & (1 << elem)) intra[idx][comb-1].push_back(shares[idx][elem]);
+                }
+                /* if (abs(mtbdd_satcountln(intra[idx].back().GetBDD(), varcount) - varcount + 1) > DOUBLE_COMPARE_THRESHOLD) return false;*/
+            }
+        }
+        std::vector<uint32_t> empty;
+        return inter_vector_combinations_xor1(model, intra, 0, empty, varcount, 0);
+    }
+}
 
 bool
 Silver::check_Uniform1(Circuit &model)
@@ -329,11 +475,11 @@ Silver::check_Uniform1(Circuit &model)
             extended.push_back(*gate);
         }
     }
-    std::cout << extended.size() << std::endl;
+    /*std::cout << extended.size() << std::endl;
     for (auto i :extended) {
         std::cout << i << " ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
     Bdd observation;
     Bdd observation1;
     int hw;
@@ -344,14 +490,14 @@ Silver::check_Uniform1(Circuit &model)
         for (int elem = extended.size() - 1; elem >= 0; elem--)
             if (comb & (1 << elem)) {
                 observation &= model[extended[elem]].getFunction();
-                std::cout << extended[elem] << std::endl;
+                //std::cout << extended[elem] << std::endl;
                 hw++;
             }
         double p = mtbdd_satcountln(observation.GetBDD(), varcount);
         double delta = p + hw - varcount;
-        std::cout << "prob: " << p << " hw: " << hw << "\n";
+        //std::cout << "prob: " << p << " hw: " << hw << "\n";
         if (abs(delta) !=0 ) {
-            std::cout << comb << std::endl;
+            //std::cout << comb << std::endl;
             return false;
         }
         //bool balanced = true;
@@ -1426,6 +1572,74 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
         if (!balanced) return false;
     } else {
         return (abs(mtbdd_satcountln(combination.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
+    }
+
+    return true;
+}
+bool
+Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount, int hw)
+{
+    LACE_ME;
+
+    if (offset < intra.size()) {
+        bool balanced = true;
+        for (int idx = 0; idx < intra[offset].size() && balanced; idx++) {
+            //hw += hammingWeight(idx+1);
+            for (int i = 0; i < intra[offset][idx].size(); i++) {
+                combination.push_back(intra[offset][idx][i]);
+            }
+            balanced &= inter_vector_combinations_xor1(model, intra, offset + 1, combination , varcount, hw + hammingWeight(idx + 1));
+            for (int i = 0; i < intra[offset][idx].size(); i++) {
+                combination.pop_back();
+            }
+        }
+        if (!balanced) return false;
+    }
+    else {
+        double p;// = mtbdd_satcountln(combination.GetBDD(), varcount);
+        std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
+        if (reduced.size() == 0) {
+            return true;
+        }
+        else {
+            Bdd observation = sylvan::sylvan_false;
+            for (int elem = 0; elem < reduced.size(); elem++)
+                observation ^= model[reduced[elem]].getFunction();
+            return (abs(mtbdd_satcountln(observation.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
+        }
+        //return (abs(p - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
+    }
+
+    return true;
+}
+
+// Calculate the Hamming Weight of an integer x
+int Silver::hammingWeight(int x) {
+    int count = 0;
+    while (x != 0) {
+        count += x & 1; // Add 1 to the count if the least significant bit of x is 1
+        x >>= 1; // Right shift x to check the next bit
+    }
+    return count;
+}
+
+bool
+Silver::inter_vector_combinations_and1(const std::vector<std::vector<Bdd>>& intra, int offset, Bdd combination, int varcount, int hw)
+{
+    LACE_ME;
+
+    if (offset < intra.size()) {
+        bool balanced = true;
+        for (int idx = 0; idx < intra[offset].size() && balanced; idx++) {
+            //hw += hammingWeight(idx+1);
+            balanced &= inter_vector_combinations_and1(intra, offset + 1, combination & intra[offset][idx], varcount, hw + hammingWeight(idx + 1));
+        }
+        if (!balanced) return false;
+    }
+    else {
+        double p = mtbdd_satcountln(combination.GetBDD(), varcount);
+
+        return (abs(p - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
     }
 
     return true;

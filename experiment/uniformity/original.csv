@@ -1,0 +1,230 @@
+./test/cms/cms3.nl
+[     0.000] Netlist: ./test/cms/cms3.nl
+[     0.031] Parse: 104 gate(s) / 140 signal(s)
+[     0.122] Elaborate: 104 gate(s) / 140 signal(s)
+[     0.138] uniformity               -- [1;32mPASS[0m.
+./test/uma/uma2_comp.nl
+[     0.000] Netlist: ./test/uma/uma2_comp.nl
+[     0.012] Parse: 81 gate(s) / 109 signal(s)
+[     0.195] Elaborate: 81 gate(s) / 109 signal(s)
+[     0.195] uniformity               -- [1;32mPASS[0m.
+./test/uma/uma2.nl
+[     0.000] Netlist: ./test/uma/uma2.nl
+[     0.004] Parse: 42 gate(s) / 53 signal(s)
+[     0.099] Elaborate: 42 gate(s) / 53 signal(s)
+[     0.099] uniformity               -- [1;32mPASS[0m.
+./test/linear/Am.nl
+[     0.000] Netlist: ./test/linear/Am.nl
+[     0.003] Parse: 20 gate(s) / 16 signal(s)
+[     0.006] Elaborate: 20 gate(s) / 16 signal(s)
+[     0.015] uniformity               -- [1;32mPASS[0m.
+./test/linear/Aout.nl
+[     0.000] Netlist: ./test/linear/Aout.nl
+[     0.002] Parse: 20 gate(s) / 14 signal(s)
+[     0.004] Elaborate: 20 gate(s) / 14 signal(s)
+[     0.012] uniformity               -- [1;32mPASS[0m.
+./test/linear/Ain.nl
+[     0.000] Netlist: ./test/linear/Ain.nl
+[     0.003] Parse: 18 gate(s) / 12 signal(s)
+[     0.007] Elaborate: 18 gate(s) / 12 signal(s)
+[     0.027] uniformity               -- [1;32mPASS[0m.
+./test/isw/isw_sni_ref1.nl
+[     0.000] Netlist: ./test/isw/isw_sni_ref1.nl
+[     0.009] Parse: 26 gate(s) / 30 signal(s)
+[     0.083] Elaborate: 26 gate(s) / 30 signal(s)
+[     0.088] uniformity               -- [1;32mPASS[0m.
+./test/isw/isw_sni_ref2.nl
+[     0.000] Netlist: ./test/isw/isw_sni_ref2.nl
+[     0.013] Parse: 55 gate(s) / 69 signal(s)
+[     0.199] Elaborate: 55 gate(s) / 69 signal(s)
+[     0.207] uniformity               -- [1;32mPASS[0m.
+./test/quadratic/q12.nl
+[     0.000] Netlist: ./test/quadratic/q12.nl
+[     0.030] Parse: 48 gate(s) / 60 signal(s)
+[     0.061] Elaborate: 48 gate(s) / 60 signal(s)
+[     0.073] uniformity               -- [1;32mPASS[0m.
+./test/prince/d1/PRINCESboxInv_NF.nl
+[     0.000] Netlist: ./test/prince/d1/PRINCESboxInv_NF.nl
+[     0.009] Parse: 250 gate(s) / 420 signal(s)
+[     0.255] Elaborate: 250 gate(s) / 420 signal(s)
+[     0.261] uniformity               -- [1;31mFAIL[0m.
+./test/prince/d1/prince_sbox_dusan_CMS1.nl
+[     0.000] Netlist: ./test/prince/d1/prince_sbox_dusan_CMS1.nl
+[     0.016] Parse: 260 gate(s) / 428 signal(s)
+[     0.100] Elaborate: 260 gate(s) / 428 signal(s)
+[     0.104] uniformity               -- [1;32mPASS[0m.
+./test/prince/d1/prince_sbox_TI1.nl
+[     0.000] Netlist: ./test/prince/d1/prince_sbox_TI1.nl
+[     0.016] Parse: 150 gate(s) / 237 signal(s)
+[     0.150] Elaborate: 150 gate(s) / 237 signal(s)
+[     0.163] uniformity               -- [1;32mPASS[0m.
+./test/prince/d1/PRINCESbox_NF.nl
+[     0.000] Netlist: ./test/prince/d1/PRINCESbox_NF.nl
+[     0.008] Parse: 211 gate(s) / 346 signal(s)
+[     0.040] Elaborate: 211 gate(s) / 346 signal(s)
+[     0.042] uniformity               -- [1;31mFAIL[0m.
+./test/keccak/dom/keccak_sbox1.nl
+[     0.000] Netlist: ./test/keccak/dom/keccak_sbox1.nl
+[     0.002] Parse: 121 gate(s) / 156 signal(s)
+[     0.127] Elaborate: 121 gate(s) / 156 signal(s)
+[     0.148] uniformity               -- [1;32mPASS[0m.
+./test/keccak/dom/keccak_sbox3.nl
+[     0.000] Netlist: ./test/keccak/dom/keccak_sbox3.nl
+[     0.017] Parse: 462 gate(s) / 632 signal(s)
+[     0.238] Elaborate: 462 gate(s) / 632 signal(s)
+[   189.331] uniformity               -- [1;32mPASS[0m.
+./test/keccak/dom/keccak_sbox2.nl
+[     0.000] Netlist: ./test/keccak/dom/keccak_sbox2.nl
+[     0.034] Parse: 249 gate(s) / 339 signal(s)
+[     0.080] Elaborate: 249 gate(s) / 339 signal(s)
+[     0.778] uniformity               -- [1;32mPASS[0m.
+./test/keccak/low-latency/3/keccak_sbox.nl
+[     0.000] Netlist: ./test/keccak/low-latency/3/keccak_sbox.nl
+[     0.100] Parse: 310 gate(s) / 420 signal(s)
+[     0.355] Elaborate: 310 gate(s) / 420 signal(s)
+[     0.368] uniformity               -- [1;31mFAIL[0m.
+./test/keccak/low-latency/2/keccak_sbox.nl
+[     0.000] Netlist: ./test/keccak/low-latency/2/keccak_sbox.nl
+[     0.070] Parse: 180 gate(s) / 240 signal(s)
+[     0.117] Elaborate: 180 gate(s) / 240 signal(s)
+[     0.128] uniformity               -- [1;31mFAIL[0m.
+./test/keccak/low-latency/1/keccak_sbox.nl
+[     0.000] Netlist: ./test/keccak/low-latency/1/keccak_sbox.nl
+[     0.022] Parse: 85 gate(s) / 110 signal(s)
+[     0.049] Elaborate: 85 gate(s) / 110 signal(s)
+[     0.050] uniformity               -- [1;31mFAIL[0m.
+./test/aes/cms/aes_sbox_cms1.nl
+[     0.000] Netlist: ./test/aes/cms/aes_sbox_cms1.nl
+[     0.039] Parse: 938 gate(s) / 1508 signal(s)
+[     0.903] Elaborate: 938 gate(s) / 1508 signal(s)
+[     1.032] uniformity               -- [1;32mPASS[0m.
+./test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl
+[     0.000] Netlist: ./test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl
+[     0.078] Parse: 967 gate(s) / 1684 signal(s)
+[     1.451] Elaborate: 967 gate(s) / 1684 signal(s)
+[     1.454] uniformity               -- [1;31mFAIL[0m.
+./test/aes/dom/aes_sbox_dom1.nl
+[     0.000] Netlist: ./test/aes/dom/aes_sbox_dom1.nl
+[     0.038] Parse: 884 gate(s) / 1416 signal(s)
+[     0.741] Elaborate: 884 gate(s) / 1416 signal(s)
+[     0.774] uniformity               -- [1;32mPASS[0m.
+./test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl
+[     0.000] Netlist: ./test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl
+[     0.039] Parse: 1188 gate(s) / 2059 signal(s)
+[     0.567] Elaborate: 1188 gate(s) / 2059 signal(s)
+[     0.998] uniformity               -- [1;31mFAIL[0m.
+./test/pini/mulPINI2.nl
+[     0.000] Netlist: ./test/pini/mulPINI2.nl
+[     0.121] Parse: 51 gate(s) / 81 signal(s)
+[     0.286] Elaborate: 51 gate(s) / 81 signal(s)
+[     0.290] uniformity               -- [1;32mPASS[0m.
+./test/pini/mulPINI1.nl
+[     0.000] Netlist: ./test/pini/mulPINI1.nl
+[     0.047] Parse: 21 gate(s) / 30 signal(s)
+[     0.137] Elaborate: 21 gate(s) / 30 signal(s)
+[     0.140] uniformity               -- [1;32mPASS[0m.
+./test/Midori/d1/MidoriSbox.nl
+[     0.000] Netlist: ./test/Midori/d1/MidoriSbox.nl
+[     0.032] Parse: 204 gate(s) / 341 signal(s)
+[     0.199] Elaborate: 204 gate(s) / 341 signal(s)
+[     0.203] uniformity               -- [1;32mPASS[0m.
+./test/present/sharedSbox_uniform1.nl
+[     0.000] Netlist: ./test/present/sharedSbox_uniform1.nl
+[     0.007] Parse: 177 gate(s) / 298 signal(s)
+[     0.039] Elaborate: 177 gate(s) / 298 signal(s)
+[     0.044] uniformity               -- [1;32mPASS[0m.
+./test/present/sharedSbox_non-uniform.nl
+[     0.000] Netlist: ./test/present/sharedSbox_non-uniform.nl
+[     0.008] Parse: 161 gate(s) / 268 signal(s)
+[     0.240] Elaborate: 161 gate(s) / 268 signal(s)
+[     0.249] uniformity               -- [1;31mFAIL[0m.
+./test/present/sharedSbox_uniform2.nl
+[     0.000] Netlist: ./test/present/sharedSbox_uniform2.nl
+[     0.058] Parse: 377 gate(s) / 670 signal(s)
+[     0.292] Elaborate: 377 gate(s) / 670 signal(s)
+[     0.297] uniformity               -- [1;32mPASS[0m.
+./test/para/para1.nl
+[     0.000] Netlist: ./test/para/para1.nl
+[     0.016] Parse: 22 gate(s) / 26 signal(s)
+[     0.035] Elaborate: 22 gate(s) / 26 signal(s)
+[     0.035] uniformity               -- [1;32mPASS[0m.
+./test/para/paraSNI3.nl
+[     0.000] Netlist: ./test/para/paraSNI3.nl
+[     0.015] Parse: 82 gate(s) / 109 signal(s)
+[     0.032] Elaborate: 82 gate(s) / 109 signal(s)
+[     0.032] uniformity               -- [1;32mPASS[0m.
+./test/para/para3.nl
+[     0.000] Netlist: ./test/para/para3.nl
+[     0.029] Parse: 68 gate(s) / 92 signal(s)
+[     0.218] Elaborate: 68 gate(s) / 92 signal(s)
+[     0.218] uniformity               -- [1;32mPASS[0m.
+./test/para/para2.nl
+[     0.000] Netlist: ./test/para/para2.nl
+[     0.049] Parse: 45 gate(s) / 57 signal(s)
+[     0.085] Elaborate: 45 gate(s) / 57 signal(s)
+[     0.085] uniformity               -- [1;32mPASS[0m.
+./test/skinny/d1/skinny_sbox8_CMS1.nl
+[     0.000] Netlist: ./test/skinny/d1/skinny_sbox8_CMS1.nl
+[     0.049] Parse: 192 gate(s) / 240 signal(s)
+[     0.102] Elaborate: 192 gate(s) / 240 signal(s)
+[     0.199] uniformity               -- [1;32mPASS[0m.
+./test/skinny/d1/skinny_sbox8_TI1.nl
+[     0.000] Netlist: ./test/skinny/d1/skinny_sbox8_TI1.nl
+[     0.024] Parse: 240 gate(s) / 336 signal(s)
+[     1.279] Elaborate: 240 gate(s) / 336 signal(s)
+[   194.180] uniformity               -- [1;32mPASS[0m.
+./test/dom/domSNI3.nl
+[     0.000] Netlist: ./test/dom/domSNI3.nl
+[     0.048] Parse: 78 gate(s) / 104 signal(s)
+[     0.170] Elaborate: 78 gate(s) / 104 signal(s)
+[     0.186] uniformity               -- [1;32mPASS[0m.
+./test/dom/domSNI2.nl
+[     0.000] Netlist: ./test/dom/domSNI2.nl
+[     0.193] Parse: 45 gate(s) / 57 signal(s)
+[     1.675] Elaborate: 45 gate(s) / 57 signal(s)
+[     1.721] uniformity               -- [1;32mPASS[0m.
+./test/dom/dom2.nl
+[     0.000] Netlist: ./test/dom/dom2.nl
+[     0.097] Parse: 42 gate(s) / 54 signal(s)
+[     0.331] Elaborate: 42 gate(s) / 54 signal(s)
+[     0.339] uniformity               -- [1;32mPASS[0m.
+./test/dom/domSNI1.nl
+[     0.000] Netlist: ./test/dom/domSNI1.nl
+[     0.029] Parse: 21 gate(s) / 24 signal(s)
+[     0.071] Elaborate: 21 gate(s) / 24 signal(s)
+[     0.072] uniformity               -- [1;32mPASS[0m.
+./test/dom/dom3.nl
+[     0.000] Netlist: ./test/dom/dom3.nl
+[     0.022] Parse: 74 gate(s) / 100 signal(s)
+[     0.142] Elaborate: 74 gate(s) / 100 signal(s)
+[     0.145] uniformity               -- [1;32mPASS[0m.
+./test/dom/dom-dep2.nl
+[     0.000] Netlist: ./test/dom/dom-dep2.nl
+[     0.026] Parse: 56 gate(s) / 79 signal(s)
+[     0.335] Elaborate: 56 gate(s) / 79 signal(s)
+[     0.338] uniformity               -- [1;32mPASS[0m.
+./test/dom/dom1.nl
+[     0.000] Netlist: ./test/dom/dom1.nl
+[     0.016] Parse: 19 gate(s) / 22 signal(s)
+[     0.042] Elaborate: 19 gate(s) / 22 signal(s)
+[     0.044] uniformity               -- [1;32mPASS[0m.
+./test/hpc/hpc2_2.nl
+[     0.000] Netlist: ./test/hpc/hpc2_2.nl
+[     0.057] Parse: 75 gate(s) / 99 signal(s)
+[     0.221] Elaborate: 75 gate(s) / 99 signal(s)
+[     0.224] uniformity               -- [1;32mPASS[0m.
+./test/hpc/hpc1_2.nl
+[     0.000] Netlist: ./test/hpc/hpc1_2.nl
+[     0.031] Parse: 52 gate(s) / 66 signal(s)
+[     0.133] Elaborate: 52 gate(s) / 66 signal(s)
+[     0.150] uniformity               -- [1;32mPASS[0m.
+./test/hpc/hpc1_1.nl
+[     0.000] Netlist: ./test/hpc/hpc1_1.nl
+[     0.033] Parse: 22 gate(s) / 26 signal(s)
+[     0.050] Elaborate: 22 gate(s) / 26 signal(s)
+[     0.051] uniformity               -- [1;32mPASS[0m.
+./test/hpc/hpc2_1.nl
+[     0.000] Netlist: ./test/hpc/hpc2_1.nl
+[     0.086] Parse: 32 gate(s) / 41 signal(s)
+[     0.277] Elaborate: 32 gate(s) / 41 signal(s)
+[     0.279] uniformity               -- [1;32mPASS[0m.
