@@ -69,11 +69,11 @@ public:
     //static std::map<int, std::vector<Node>> 
     static std::vector<sylvan::Bdd> elaborate(Circuit &model, int improvedVarOrder, std::map<int, std::vector<Node>> sharedInputs);
 
-    static bool check_Uniform(Circuit &model);
+    static bool check_Uniform(Circuit &model, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout);
 
     static bool check_Uniform3(Circuit& model);
 
-    static bool check_Uniform2(Circuit& model);
+    static bool check_Uniform2(Circuit& model, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout);
 
     static bool check_Uniform1(Circuit& model);
 
@@ -96,9 +96,9 @@ public:
     static std::vector<Node> get_nodes_of_types(Circuit& model, const std::set<std::string> types);
 private:
     static void inter_vector_combinations_and(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, std::vector<sylvan::Bdd> &inter);
-    static bool inter_vector_combinations_xor(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, int varcount);
+    static bool inter_vector_combinations_xor(const std::vector<std::vector<sylvan::Bdd>> &intra, int offset, sylvan::Bdd combination, int varcount, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout);
 
-    static bool inter_vector_combinations_xor1(Circuit& model, const std::vector<std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount);
+    static bool inter_vector_combinations_xor1(Circuit& model, const std::vector<std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout);
  
     static int hammingWeight(int x);
 

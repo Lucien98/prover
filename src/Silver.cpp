@@ -39,6 +39,11 @@ static double elapsedTime() {
     return elapsed.count();
 }
 
+static double elapsedTime(std::chrono::time_point<std::chrono::high_resolution_clock> begin) {
+    std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - begin;
+    return elapsed.count();
+}
+
 static void INFO(const std::string info) {
     std::chrono::duration<double, std::ratio<1>> elapsed = std::chrono::high_resolution_clock::now() - start;
     std::cout << "[*" << std::setw(10) << std::fixed << std::setprecision(3) << elapsed.count() << "] " << info;
@@ -258,7 +263,7 @@ Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector
 
 /* Uniformity check */
 bool
-Silver::check_Uniform(Circuit& model)
+Silver::check_Uniform(Circuit& model, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout)
 {
     LACE_ME;
 
@@ -325,7 +330,7 @@ Silver::check_Uniform(Circuit& model)
             }
         }
 
-        return inter_vector_combinations_xor(intra, 0, Bdd::bddZero(), varcount);
+        return inter_vector_combinations_xor(intra, 0, Bdd::bddZero(), varcount, begin, timeout);
     }
 }
 bool
@@ -401,7 +406,7 @@ Silver::check_Uniform3(Circuit& model)
 }
 
 bool
-Silver::check_Uniform2(Circuit& model)
+Silver::check_Uniform2(Circuit& model, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout)
 {
     LACE_ME;
 
@@ -479,7 +484,7 @@ Silver::check_Uniform2(Circuit& model)
             //}
         }
         std::vector<uint32_t> empty;
-        return inter_vector_combinations_xor1(model, intra, 0, empty, varcount);
+        return inter_vector_combinations_xor1(model, intra, 0, empty, varcount, begin, timeout);
     }
 }
 
@@ -845,7 +850,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             else {
                 //observation = model[probes[0]].getFunction();
                 for (int probe = 0; probe < probes.size(); probe++)
-                    extended_o.push_back(probes[0]);
+                    extended_o.push_back(probes[probe]);
                     //observation &= model[probes[probe]].getFunction();
                 //bool independent = true;
                 //for (int idx = 0; idx < secrets.size() && independent; idx++) independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets[idx].GetBDD(), varcount);
@@ -1596,16 +1601,20 @@ Silver::inter_vector_combinations_and(const std::vector<std::vector<Bdd>> &intra
 }
 
 bool
-Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra, int offset, Bdd combination, int varcount)
+Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra, int offset, Bdd combination, int varcount, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout)
 {
     LACE_ME;
 
     if (offset < intra.size()) {
         bool balanced = true;
         for (int idx = 0; idx < intra[offset].size() && balanced; idx++)
-            balanced &= inter_vector_combinations_xor(intra, offset + 1, combination ^ intra[offset][idx], varcount);
+            balanced &= inter_vector_combinations_xor(intra, offset + 1, combination ^ intra[offset][idx], varcount, begin, timeout);
         if (!balanced) return false;
     } else {
+        if (elapsedTime(begin) > 60 * timeout) {
+            printf("timeout");
+            return false;
+        }
         return (abs(mtbdd_satcountln(combination.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
     }
 
@@ -1613,7 +1622,7 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
 }
 
 bool
-Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount)
+Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::vector<std::vector<uint32_t>>>& intra, int offset, std::vector<uint32_t> combination, int varcount, std::chrono::time_point<std::chrono::high_resolution_clock> begin, int timeout)
 {
     LACE_ME;
 
@@ -1624,7 +1633,7 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
             for (int i = 0; i < intra[offset][idx].size(); i++) {
                 combination.push_back(intra[offset][idx][i]);
             }
-            balanced &= inter_vector_combinations_xor1(model, intra, offset + 1, combination , varcount);
+            balanced &= inter_vector_combinations_xor1(model, intra, offset + 1, combination , varcount, begin, timeout);
             for (int i = 0; i < intra[offset][idx].size(); i++) {
                 combination.pop_back();
             }
@@ -1632,9 +1641,13 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
         if (!balanced) return false;
     }
     else {
-        //printf("%d\n", combination.size());
+        if (elapsedTime(begin) > 60 * timeout) {
+            printf("timeout");
+            return false;
+        }
+        //printf("%d ", combination.size());
         std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
-        //printf("%d\n", reduced.size());
+        // printf("%d\n", reduced.size());
         if (reduced.size() == 0) {
             //printf("red\n");
             return true;
