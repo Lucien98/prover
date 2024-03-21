@@ -38,7 +38,7 @@ unsigned int CORES;
 size_t       MEMORY;
 
 /* Enable (true) / disable (false) detailed test reporting */
-bool         VERBOSE;
+int         VERBOSE;
 
 /* Enable (true) / disable (false) verilog design parsing */
 bool         PARSE_VERILOG;

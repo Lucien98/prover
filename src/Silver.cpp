@@ -114,6 +114,20 @@ Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& shar
     return model;
 }
 
+bool Silver::useFresh(Circuit& model) {
+    std::pair<boost::adjacency_list<>::vertex_iterator,
+        boost::adjacency_list<>::vertex_iterator> vs = boost::vertices(model);
+    for (auto node = vs.first; node != vs.second; node++) {
+        if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
+            return false;
+        }
+        if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* Circuit elaboration */
 std::vector<Bdd>
 Silver::elaborate(Circuit &model, int improvedVarOrder,std::map<int, std::vector<Node>> sharedInputs) {
@@ -650,7 +664,7 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 }
                 std::vector<uint32_t> extended = BddSet(observation).toVector();
                 //print observation set
-                if (verbose == 1){
+                if (verbose == 2){
                     printf("now the probes are %d ", probes[0]);
                     for (int probe = 1; probe < probes.size(); probe++)
                     {
@@ -670,11 +684,11 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                 for (int comb = 1; comb < (1 << extended.size()); comb++) {
                     if (comb % 1000 == 0) 
                     {
-                        if (elapsedTime() > timeout*3600) {
+                        if (elapsedTime() > timeout*60) {
                             printf("Time out!");
                             return probes;
                         }
-                        if (verbose == 1) {
+                        if (verbose == 2) {
                             INFO("");
                             printf("\tcomb = %d\n", comb);
                         }
@@ -694,11 +708,11 @@ Silver::check_Probing(Circuit &model, std::map<int, Probes> inputs, const int pr
                     }
                     //for (int idx = 0; idx < secrets.size(); idx++) independent &= SYNC(mtbdd_statindependence);
                     if (!independent) {
-                        if (verbose == 1) printf("independent: comb = %d \n", comb);
+                        if (verbose == 2) printf("independent: comb = %d \n", comb);
                         return probes;
                     }
                 }
-                if (verbose == 1) printf("\n");
+                if (verbose == 2) printf("\n");
             } else {
                 Bdd observation = model[probes[0]].getFunction();
                 for (int probe = 1; probe < probes.size(); probe++)
@@ -769,7 +783,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 return true;
             return false;
         });
-    if (verbose == 1) {
+    if (verbose == 2) {
         for (int i = 0; i < positions.size(); ++i)
         {
             printf("%d ", positions[i]);
@@ -819,8 +833,8 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                     probes[probe++] = positions[idx];
             Bdd observation; 
             std::vector<uint32_t> extended_o;
+            total_combinations++;
             if (robustModel) {
-                total_combinations++;
                 observation = model[probes[0]].getRegisters();
                 for (int probe = 1; probe < probes.size(); probe++)
                 {
@@ -839,7 +853,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             }
 
             //std::vector<uint32_t> extended_o = BddSet(observation).toVector();
-            if (verbose == 1){
+            if (verbose == 2){
 
                 INFO("now the");
                 printf(" probes are %d ", probes[0]);
@@ -861,14 +875,14 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             // Reduction rule 1: Uniqueness Rule
             std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
             std::set<uint32_t> set_of_extended;
-            if (verbose == 1)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
+            if (verbose == 2)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
             if (0 == extended.size()) {
-                if (verbose) std::cout << "This set is reduced to empty set using reductaion rule, continue" << std::endl;
+                if (verbose == 2) std::cout << "This set is reduced to empty set using reductaion rule, continue" << std::endl;
                 number_rule++;
                 continue;
             }
             for (int i = 0; i < extended.size(); i++){
-                if (verbose == 1){
+                if (verbose == 2){
                     printf("%d: ", extended[i]);
                     printIntSet("\n\t perfectM", model[extended[i]].getPerfectM());
                     printIntSet("\t supportV", model[extended[i]].getSupportV());
@@ -880,9 +894,9 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             if(useSubset)
             {
                 int find_subset = 0;
-                if (verbose == 1)printf("the size of extended is %d\n", extended.size());
+                if (verbose == 2)printf("the size of extended is %d\n", extended.size());
                 if (std::find(merged_obs.begin(), merged_obs.end(), set_of_extended) != merged_obs.end()) {
-                    if (verbose == 1)printf("this set has already been checked, we skip it to continue\n");
+                    if (verbose == 2)printf("this set has already been checked, we skip it to continue\n");
                     continue;
                 }
                 else
@@ -895,7 +909,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                         {
                             num_subset++;
                             find_subset = 1;
-                            if (verbose == 1)printf("find %d-th subset, skip it and continue\n", num_subset);
+                            if (verbose == 2)printf("find %d-th subset, skip it and continue\n", num_subset);
                             break;
                         }
 
@@ -909,7 +923,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                     }
                 }
             }
-            if (verbose == 1)printf("so comb is of size %d\n", 1 << extended.size());
+            if (verbose == 2)printf("so comb is of size %d\n", 1 << extended.size());
 
             //observation = sylvan::sylvan_true;
             //for (int elem = 0; elem < extended.size(); elem++)
@@ -937,11 +951,11 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             // nivar = 
             std::set_difference(inputs_set.begin(), inputs_set.end(), ivar.begin(), ivar.end(), std::inserter(nivar, nivar.begin()));
             if (ivar.size() == 0) {
-                if (verbose == 1)printf("the set is ni, skip it and continue\n");
+                if (verbose == 2)printf("the set is ni, skip it and continue\n");
                 continue;
             }
             // print ivar and nivar
-            if (verbose == 1) {
+            if (verbose == 2) {
                 std::cout << "the size of interference variables is " << ivar.size() << "\n";
                 std::cout << "i vars are: ";
                 for (pos = ivar.begin(); pos != ivar.end(); pos++) {
@@ -975,16 +989,16 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 }
                 ivar_comb.push_back(ivar_comb_elem);
             }
-            if (verbose == 1)printf("\n");
+            if (verbose == 2)printf("\n");
             for (int comb = (1 << extended.size()) - 1; comb > 0; comb--) {
                 if (comb % 1000 == 0)
                 {
-                    if (elapsedTime() > timeout*3600) {
-                        if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                    if (elapsedTime() > timeout*60) {
+                        if (verbose == 0) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                         printf("Time out!");
                         return probes;
                     }
-                    if (verbose == 1) {
+                    if (verbose == 2) {
                         INFO("");
                         printf("\tcomb = %d\n", comb);
                     }
@@ -997,22 +1011,22 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 bool independent = true;
                 for (int idx = 0; idx < ivar_comb.size() && independent; idx++) {
                     independent &= CALL(mtbdd_statindependence, observation.GetBDD(), varcount, secrets_comb[ivarToSec_indexMap[ivar_comb[idx]]].GetBDD(), varcount);
-                    if(!independent && verbose){
+                    if(!independent && verbose == 2){
                         printf("idx = %d\n", ivar_comb[idx]);
                         printf("curr_secret_id = %d\n", ivarToSec_indexMap[ivar_comb[idx]]);
                     }
                 }
                 if (!independent) {
-                    if (verbose == 1) printf("independent: comb = %d \n", comb);
-                    if (onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+                    if (verbose == 2) printf("independent: comb = %d \n", comb);
+                    if (verbose == 0) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                     return probes;
                 }
             }
-            if (verbose == 1)printf("\n");
+            if (verbose == 2)printf("\n");
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
     }
 
-    if(onlygp) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
+    if(verbose == 0) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
     return inputs[minimal];
 }
 
@@ -1549,14 +1563,26 @@ Silver::get_minimal_sharing(std::map<int, Probes> inputs)
 }
 
 void
-Silver::print_node_vector(const Circuit &model, const std::vector<Node> nodes)
+Silver::print_node_vector(const Circuit& model, const std::vector<Node> nodes)
 {
     std::cout << "\"";
     for (int n = 0; n < nodes.size(); n++) {
-            std::cout <<  nodes[n] + 1;
+        std::cout << nodes[n] + 1;
         if (n != nodes.size() - 1) std::cout << ",";
     }
     std::cout << "\"\n";
+}
+
+/*e: configurable line ending*/
+void
+Silver::print_node_vector_e(const Circuit& model, const std::vector<Node> nodes, std::string ending) 
+{
+    std::cout << "\"";
+    for (int n = 0; n < nodes.size(); n++) {
+        std::cout << nodes[n] + 1;
+        if (n != nodes.size() - 1) std::cout << ",";
+    }
+    std::cout << "\"" << ending;
 }
 
 void
@@ -1608,16 +1634,20 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
     else {
         //printf("%d\n", combination.size());
         std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
+        //printf("%d\n", reduced.size());
         if (reduced.size() == 0) {
             //printf("red\n");
             return true;
         }
         else {
-            Bdd observation = sylvan::sylvan_false;
-            for (int elem = 0; elem < reduced.size(); elem++)
-                observation ^= model[reduced[elem]].getFunction();
+            Bdd observation = sylvan::sylvan_true;
+            int hw = 0;
+            for (int elem = 0; elem < reduced.size(); elem++){
+                observation &= model[reduced[elem]].getFunction();
+                hw += 1;
+            }
             //printf("robdd\n");
-            return (abs(mtbdd_satcountln(observation.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
+            return (abs(mtbdd_satcountln(observation.GetBDD(), varcount) - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
         }
     }
 

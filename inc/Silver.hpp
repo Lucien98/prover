@@ -64,6 +64,8 @@ public:
 
     static Circuit parse(const std::string filePath, std::map<int, std::vector<Node>>& sharedInputs);
 
+    static bool useFresh(Circuit& model);
+
     //static std::map<int, std::vector<Node>> 
     static std::vector<sylvan::Bdd> elaborate(Circuit &model, int improvedVarOrder, std::map<int, std::vector<Node>> sharedInputs);
 
@@ -88,6 +90,8 @@ public:
     static std::vector<Node> check_SNI(Circuit &model, std::map<int, Probes> inputs, const int probingOrder, const bool robustModel);
 
     static void print_node_vector(const Circuit &model, const std::vector<Node> nodes);
+
+    static void print_node_vector_e(const Circuit& model, const std::vector<Node> nodes, std::string endin);
 
     static std::vector<Node> get_nodes_of_types(Circuit& model, const std::set<std::string> types);
 private:
