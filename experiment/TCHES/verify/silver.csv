@@ -1,0 +1,11 @@
+test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl,0.818532,4.048999,1,"4,8",21.850023,1,"4,8",0.006660,0
+test/aes/cms/aes_sbox_cms1.nl,3.572309,10.694024,1,"8,16",Time out!1246.582075,0,"799",235.653466,1
+test/aes/dom/aes_sbox_dom1.nl,1.852642,8.942723,1,"8,16",Time out!1242.764861,0,"800",4.471580,1
+test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl,0.506427,3.553806,1,"4,8",15.951621,1,"4,8",0.721208,0
+test/aes/TI/inversion_TI.nl,1.181800,9.310711,1,"8,16",Time out!1205.626344,0,"745",timeout1200.830081,0
+test/prince/d1/PRINCESboxInv_NF.nl,0.264157,0.583368,1,"4,8",0.015262,1,"4,8",0.052749,0
+test/prince/d1/PRINCESbox_NF.nl,0.132780,0.019400,1,"4,8",0.004194,1,"4,8",0.002507,0
+test/prince/d1/prince_sbox_dusan_CMS1.nl,0.069980,0.014143,1,"4,8",0.442621,1,"4,8",0.001750,1
+test/prince/d1/prince_sbox_TI1.nl,0.052535,0.026222,1,"1,42",0.088783,1,"17,54",0.006431,1
+test/prince/d2/sbox/PRINCE_Sbox.nl,0.075670,157.309926,2,"4,8,12",Time out!1200.289088,1,"948,1249",0.101559,1
+test/prince/d2/sbox/TwoSboxes.nl,
