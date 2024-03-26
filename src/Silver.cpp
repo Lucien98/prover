@@ -779,7 +779,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
     LACE_ME;
 
     std::vector<long unsigned int> positions = (robustModel) ? get_nodes_of_types(model, rprobes) : get_nodes_of_types(model, sprobes);
-    if (useSubset)
+    if (useSubset && robustModel)
         std::sort(positions.begin(), positions.end(), [&model,positions](Node n1, Node n2) ->bool
         {
             int len1 = BddSet(model[n1].getRegisters()).toVector().size();
@@ -878,12 +878,16 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                 }
             }
             // Reduction rule 1: Uniqueness Rule
+            int len_before = extended_o.size();
             std::vector<uint32_t> extended = simplify_ExtendedProbes(model, extended_o);
             std::set<uint32_t> set_of_extended;
             if (verbose == 2)std::cout << "atfer simplify_ExtendedProbes: " << extended.size() << "\n";
             if (0 == extended.size()) {
                 if (verbose == 2) std::cout << "This set is reduced to empty set using reductaion rule, continue" << std::endl;
                 number_rule++;
+                continue;
+            }
+            if (!robustModel && (extended.size()!=len_before)) {
                 continue;
             }
             for (int i = 0; i < extended.size(); i++){
@@ -896,7 +900,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
             }
                 
             // Subset strategy
-            if(useSubset)
+            if(useSubset && robustModel)
             {
                 int find_subset = 0;
                 if (verbose == 2)printf("the size of extended is %d\n", extended.size());
@@ -1026,6 +1030,7 @@ Silver::reduce_Probing(Circuit &model, std::map<int, Probes> inputs, const int p
                     if (verbose == 0) printf("%ld,%ld,%ld,", total_combinations, num_subset, number_rule);
                     return probes;
                 }
+                if (!robustModel) break;
             }
             if (verbose == 2)printf("\n");
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));

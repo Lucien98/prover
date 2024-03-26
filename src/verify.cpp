@@ -33,6 +33,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <sylvan/sylvan_cache.h>
 
 #include <boost/program_options.hpp>
 
@@ -65,7 +66,7 @@ po::options_description build_argument_parser(
     ("cores", po::value<unsigned int>(&cfg->CORES)->default_value(0),
         "Maximum number of CPU cores to use. Set to 0 (default) for auto-detect")
 
-    ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(8*1024*1024*1024ull),
+    ("memory", po::value<size_t>(&cfg->MEMORY)->default_value(6*1024*1024*1024ull),
         "RAM (in Bytes) used by Sylvan BDD library.")
 
     ("verbose", po::value<int>(&cfg->VERBOSE)->default_value(1),
@@ -148,6 +149,89 @@ void test() {
     exit(0);
 }
 
+void check_Security(std::string notion, Circuit model, std::map<int, Probes> inputs, silver_config_t cfg, int order) {
+    /* Start LACE framework */
+    lace_init(cfg.CORES, 0);
+    lace_startup(0, NULL, NULL);
+
+    
+    std::vector<Node> probes;
+    /* Start BDD session */
+    sylvan::sylvan_set_limits(cfg.MEMORY, 0, 10);
+    sylvan::sylvan_init_package();
+    sylvan::sylvan_init_mtbdd();
+    double t1 = elapsedTime();
+    /* Elabotare circuit model */
+    Silver::elaborate(model, cfg.VARORDER, inputs);
+    if(notion == "standard")
+    if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model)) + " signal(s)\n");
+    else{
+        std::cout << str(elapsedTime() - t1) << ",";
+        t1 = elapsedTime();
+    }
+    if (notion == "standard") {
+        /* Standard probing security */
+        if (cfg.USE_RULE)
+            probes = Silver::reduce_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
+        else
+            probes = Silver::check_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT);
+        if (cfg.VERBOSE == 0) {
+            std::cout << str(elapsedTime() - t1) << ",";
+            t1 = elapsedTime();
+            std::cout << str(probes.size() - 1) << ",";
+            Silver::print_node_vector_e(model, probes, ",");
+        }
+        else {
+            if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+            else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+            std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes);
+
+        }
+
+    }
+    else if (notion == "robust") {
+        /* Robust probing security */
+        if (cfg.USE_RULE)
+            probes = Silver::reduce_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
+        else
+            probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT);
+        if (cfg.VERBOSE == 0) {
+            std::cout << str(elapsedTime() - t1) << ",";
+            t1 = elapsedTime();
+            std::cout << str(probes.size() - 1) << ",";
+            Silver::print_node_vector_e(model, probes, ",");
+        }
+        else {
+            if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
+            else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
+            std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes);
+        }
+
+    }
+    else if (notion == "uniformity") {
+        /* Standard uniformity check */
+        bool uniform;
+        std::chrono::time_point<std::chrono::high_resolution_clock> begin = std::chrono::high_resolution_clock::now();
+        if (Silver::useFresh(model) && cfg.USE_RULE == 1) uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
+        else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+
+        if (cfg.VERBOSE == 0) {
+            std::cout << str(elapsedTime() - t1) << ",";
+            if (uniform) std::cout << "1" << std::endl;
+            else std::cout << "0" << std::endl;
+        }
+        else {
+            if (uniform)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
+            else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
+        }
+    }
+    /* Terminate BDD session */
+    if (cfg.DEBUG_INFO) sylvan::sylvan_stats_report(stdout);
+    sylvan::sylvan_quit();
+    lace_exit();
+
+}
+
 int main (int argc, char * argv[]) {
     //test();
 
@@ -172,14 +256,6 @@ int main (int argc, char * argv[]) {
     int order, minimal = 0;
     bool check;
 
-    /* Start LACE framework */
-    lace_init(cfg.CORES, 0);
-    lace_startup(0, NULL, NULL);
-
-    /* Start BDD session */
-    sylvan::sylvan_set_limits(cfg.MEMORY, 0, 10);
-    sylvan::sylvan_init_package();
-    sylvan::sylvan_init_mtbdd();
 
     // Before and after garbage collection, call gc_start and gc_end
     if (cfg.DEBUG_INFO){
@@ -217,13 +293,7 @@ int main (int argc, char * argv[]) {
     else {
         t1 = elapsedTime();
     }
-    /* Elabotare circuit model */
-    Silver::elaborate(model, cfg.VARORDER, inputs);
-    if (cfg.VERBOSE) INFO("Elaborate: " + str(num_vertices(model)) + " gate(s) / " + str(num_edges(model))  + " signal(s)\n");
-    else {
-        std::cout << str(elapsedTime() - t1) << ",";
-        t1 = elapsedTime();
-    }
+
     /* Find smallest sharing */
     for (int index = 0; index < inputs.size(); index++) {
         minimal = (inputs[index].size() < inputs[minimal].size()) ? index : minimal;
@@ -232,6 +302,9 @@ int main (int argc, char * argv[]) {
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
 
+    check_Security("standard", model, inputs, cfg, order);
+    check_Security("robust", model, inputs, cfg, order);
+    check_Security("uniformity", model, inputs, cfg, order);
 
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);
@@ -242,119 +315,10 @@ int main (int argc, char * argv[]) {
         Silver::print_node_vector(model, probes); 
         exit(0);
     }
-    /*if (cfg.ONLY_GP) {
-        if (cfg.USE_RULE == 1) {
-            probes = Silver::reduce_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
-        }
-        else {
-            probes = Silver::check_Probing(model, inputs, order, true, cfg.DEBUG_INFO, cfg.TIMEOUT);
-        }
-        std::cout << str(elapsedTime()) << ",";
-        if (probes.size() - 1 != 0) std::cout << str(probes.size() - 1) << ",";
-        else                        std::cout << str(probes.size() - 0) << ",";
-        Silver::print_node_vector(model, probes);
-        exit(0);
-    }*/
 
-    /* Standard probing security */
-     if (cfg.USE_RULE)
-         probes = Silver::reduce_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
-     else
-         probes = Silver::check_Probing(model, inputs, order, false, cfg.VERBOSE, cfg.TIMEOUT);
-     if (cfg.VERBOSE == 0) {
-         std::cout << str(elapsedTime() - t1) << ",";
-         t1 = elapsedTime();
-         std::cout << str(probes.size() - 1) << ",";
-         Silver::print_node_vector_e(model, probes, ",");
-     }
-     else {
-         if (probes.size() - 1 != 0) INFO("probing.standard (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-         else                        INFO("probing.standard (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-         std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes);
-
-     }
-     //if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
-    /* Robust probing security */
-    if (cfg.USE_RULE)
-        probes = Silver::reduce_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT, cfg.ONLY_GP, cfg.USE_SUBSET);
-    else
-        probes = Silver::check_Probing(model, inputs, order, true, cfg.VERBOSE, cfg.TIMEOUT);
-    if (cfg.VERBOSE == 0) {
-        std::cout << str(elapsedTime() - t1) << ",";
-        t1 = elapsedTime();
-        std::cout << str(probes.size() - 1) << ",";
-        Silver::print_node_vector_e(model, probes, ",");
-    }
-    else {
-        if (probes.size() - 1 != 0) INFO("probing.robust   (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-        else                        INFO("probing.robust   (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-        std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes);
-    }
-    /* Standard non-interference */
-    // probes = Silver::check_NI(model, inputs, order, false);
-
-    // if (probes.size() - 1 != 0) INFO("NI.standard      (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("NI.standard      (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
-    /* Robust non-interference */
-    // probes = Silver::check_NI(model, inputs, order, true);
-
-    // if (probes.size() - 1 != 0) INFO("NI.robust        (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("NI.robust        (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    
-    /* Standard strong non-interference */
-    // probes = Silver::check_SNI(model, inputs, order, false);
-
-    // if (probes.size() - 1 != 0) INFO("SNI.standard     (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("SNI.standard     (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
-    /* Robust strong non-interference */
-    // probes = Silver::check_SNI(model, inputs, order, true);
-
-    // if (probes.size() - 1 != 0) INFO("SNI.robust       (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("SNI.robust       (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-    
-    /* Standard probe-isolating non-interference */
-    // probes = Silver::check_PINI(model, inputs, order, false);
-
-    // if (probes.size() - 1 != 0) INFO("PINI.standard    (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("PINI.standard    (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
-    /* Robust probe-isolating non-interference */
-    // probes = Silver::check_PINI(model, inputs, order, true);
-
-    // if (probes.size() - 1 != 0) INFO("PINI.robust      (d \u2264 " + str(probes.size() - 1) + ") -- \033[1;32mPASS\033[0m.");
-    // else                        INFO("PINI.robust      (d \u2264 " + str(probes.size() - 0) + ") -- \033[1;31mFAIL\033[0m.");
-    // if (cfg.VERBOSE) { std::cout << "\t>> Probes: "; Silver::print_node_vector(model, probes); } else { std::cout << std::endl; }
-
-    /* Standard uniformity check */
-    bool uniform;
-    std::chrono::time_point<std::chrono::high_resolution_clock> begin = std::chrono::high_resolution_clock::now();
-    if (Silver::useFresh(model) && cfg.USE_RULE == 1) uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
-    else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
-
-    if (cfg.VERBOSE == 0) {
-        std::cout << str(elapsedTime() - t1) << ",";
-        if (uniform) std::cout << "1" << std::endl;
-        else std::cout << "0" << std::endl;
-    }else{
-        if (uniform)  INFO("uniformity               -- \033[1;32mPASS\033[0m.\n");
-        else          INFO("uniformity               -- \033[1;31mFAIL\033[0m.\n");
-    }
     /* Remove model graph from memory */
     model.clear();
 
-    /* Terminate BDD session */
-    if (cfg.DEBUG_INFO) sylvan::sylvan_stats_report(stdout);
-    sylvan::sylvan_quit();
-
-    lace_exit();
 
     return 0;
 }
