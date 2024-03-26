@@ -1,0 +1,30 @@
+test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl,0.888968,4.396410,1,"4,8",24.680615,1,"4,8",0.017464,0
+test/aes/cms/aes_sbox_cms1.nl,3.770886,10.500111,1,"8,16",Time out!1213.660097,0,"798",8.261906,1
+test/aes/dom/aes_sbox_dom1.nl,3.043783,9.730013,1,"8,16",Time out!1224.201227,0,"800",4.198944,1
+test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl,1.349688,4.379343,1,"4,8",20.100016,1,"4,8",0.796101,0
+test/aes/TI/inversion_TI.nl,1.175859,9.263244,1,"8,16",Time out!1202.274176,0,"745",timeout1200.013909,0
+test/prince/d1/PRINCESboxInv_NF.nl,0.045231,0.013758,1,"4,8",0.005267,1,"4,8",0.001281,0
+test/prince/d1/PRINCESbox_NF.nl,0.044241,0.011622,1,"4,8",0.004575,1,"4,8",0.002118,0
+test/prince/d1/prince_sbox_dusan_CMS1.nl,0.047634,0.014206,1,"4,8",0.392996,1,"4,8",0.000974,1
+test/prince/d1/prince_sbox_TI1.nl,0.041066,0.025800,1,"1,42",0.102851,1,"17,54",0.006595,1
+test/prince/d2/sbox/PRINCE_Sbox.nl,0.075379,150.606312,2,"4,8,12",Time out!1200.229022,1,"948,1248",0.891510,1
+test/prince/d2/sbox/TwoSboxes.nl,0.102188,30475.350906,2,"8,16,24",Time out!6128.878628,1,"1263,1264",timeout1200.073082,0
+test/present/sharedSbox_non-uniform.nl,1.250318,0.013422,0,"138",0.059123,0,"150",0.004906,0
+test/present/sharedSbox_uniform1.nl,0.167369,0.038985,1,"1,122",0.068158,1,"56,108",0.004644,1
+test/present/sharedSbox_uniform2.nl,0.063799,0.072229,1,"1,230",0.039327,1,"130,199",0.004790,1
+test/present/present_sbox_nf1.nl,0.042825,0.033102,1,"4,8",0.004634,1,"4,8",0.003072,1
+test/keccak/NF/Chi_NoFresh.nl,0.029449,0.021916,1,"5,10",0.005582,1,"5,10",0.002933,1
+test/keccak/dom/keccak_sbox1_nf.nl,0.029797,0.024728,1,"5,10",0.004375,1,"5,10",0.000830,0
+test/keccak/dom/keccak_sbox1.nl,0.031065,0.021339,1,"5,10",0.007522,1,"5,10",0.000177,1
+test/keccak/dom/keccak_sbox2.nl,0.398116,4.307618,2,"5,10,15",8.068480,2,"5,10,15",5.847875,1
+test/keccak/dom/keccak_sbox3.nl,0.058917,3798.056956,3,"5,10,15,20",Time out!1200.018412,2,"211,225,453",timeout1200.002135,0
+test/keccak/low-latency/1/keccak_sbox.nl,0.020944,0.025399,1,"1,2",0.005319,1,"1,2",0.000122,0
+test/keccak/low-latency/2/keccak_sbox.nl,0.046389,0.614827,2,"1,2,3",1.415150,2,"1,2,3",0.000262,0
+test/keccak/low-latency/3/keccak_sbox.nl,0.050556,193.643086,3,"1,2,3,4",931.892133,3,"1,2,3,4",0.000460,0
+test/Midori/d1/MidoriSbox.nl,0.046090,0.011922,1,"4,8",0.004648,1,"4,8",0.001773,1
+test/Midori/d2/Midori_Sbox.nl,0.073392,126.612700,2,"4,8,12",Time out!1200.177353,1,"900,1183",0.289936,1
+test/Midori/d2/TwoSboxes.nl,0.090389,25799.996284,2,"8,16,24",Time out!4779.022270,1,"1107,1109",timeout1200.049943,0
+test/skinny/d1/skinny_sbox8_CMS1.nl,0.950426,0.377861,1,"8,16",0.868605,1,"8,16",0.269941,1
+test/skinny/d1/skinny_sbox8_TI1.nl,1.745584,89.493672,1,"1,203",185.228112,1,"37,197",153.705951,1
+test/skinny/d2/SKINNY_SBOX.nl,0.076828,41.921401,2,"4,8,12",Time out!1200.014642,1,"601,646",0.202184,1
+test/skinny/d2/TwoSboxes.nl,0.162318,9210.046323,2,"8,16,24",Time out!1888.188291,1,"699,701",timeout1200.033304,0
