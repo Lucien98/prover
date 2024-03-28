@@ -122,15 +122,30 @@ Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& shar
 bool Silver::useFresh(Circuit& model) {
     std::pair<boost::adjacency_list<>::vertex_iterator,
         boost::adjacency_list<>::vertex_iterator> vs = boost::vertices(model);
-    for (auto node = vs.first; node != vs.second; node++) {
-        if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
-            return false;
+    //for (auto node = vs.first; node != vs.second; node++) {
+    //    if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
+    //        return false;
+    //    }
+    //    if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
+    //        return true;
+    //    }
+    //}
+    std::map<int, std::vector<Node>> sharedOutputs;
+    for (auto node = vs.second; node != vs.first; node--) {
+        if (model[*node].getType() == "out") {
+            sharedOutputs[model[*node].getSharing().first].push_back(*node);
+            //std::cout << *node << std::endl;
         }
-        if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
-            return true;
-        }
+        else 
+            break;
     }
-    return false;
+    int minimal;
+    /* Find smallest sharing */
+    for (int index = 0; index < sharedOutputs.size(); index++) {
+        minimal = (sharedOutputs[index].size() < sharedOutputs[minimal].size()) ? index : minimal;
+    }
+
+    return (minimal > 2);
 }
 
 /* Circuit elaboration */
