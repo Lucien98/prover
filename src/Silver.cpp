@@ -122,14 +122,15 @@ Silver::parse(const std::string filePath, std::map<int, std::vector<Node>>& shar
 bool Silver::useFresh(Circuit& model) {
     std::pair<boost::adjacency_list<>::vertex_iterator,
         boost::adjacency_list<>::vertex_iterator> vs = boost::vertices(model);
-    //for (auto node = vs.first; node != vs.second; node++) {
-    //    if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
-    //        return false;
-    //    }
-    //    if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
-    //        return true;
-    //    }
-    //}
+    bool use_fresh = false;
+    for (auto node = vs.first; node != vs.second; node++) {
+        if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
+            use_fresh = false;
+        }
+        if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
+            use_fresh = true;
+        }
+    }
     std::map<int, std::vector<Node>> sharedOutputs;
     for (auto node = vs.second; node != vs.first; node--) {
         if (model[*node].getType() == "out") {
@@ -145,7 +146,7 @@ bool Silver::useFresh(Circuit& model) {
         minimal = (sharedOutputs[index].size() < sharedOutputs[minimal].size()) ? index : minimal;
     }
 
-    return (minimal > 2);
+    return (minimal > 2) && use_fresh;
 }
 
 /* Circuit elaboration */
