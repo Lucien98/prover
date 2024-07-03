@@ -215,6 +215,7 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
         if (Silver::useFresh(model) && cfg.USE_RULE == 1) uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
         else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
 
+        // uniform = Silver::check_Uniform3(model);
         if (cfg.VERBOSE == 0) {
             std::cout << str(elapsedTime() - t1) << ",";
             if (uniform) std::cout << "1" << std::endl;

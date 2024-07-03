@@ -1,0 +1,5 @@
+test/prince/d2/prince_sbox_nf2.nl
+test/present/present_sbox_nf2.nl
+test/SKINNY/d2/SKINNY_Sbox_NF2.nl
+test/Midori/d2/Midori_Sbox_NF2.nl
+test/keccak/NF/Chi_NoFresh2.nl
