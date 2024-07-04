@@ -1,12 +1,1 @@
-test/present/TwoSbox_3stageL2.nl 
-test/present/Present_Sbox_3stageL2.nl 
-test/present/Present_Sbox_5stageL2.nl 
-test/skinny/d2/SKINNY_Sbox_3stageL2.nl 
-test/skinny/d2/TwoSbox_3stageL2.nl 
-test/skinny/d2/SKINNY_Sbox_4stageL2.nl 
-test/Midori/d2/Midori_Sbox_3stageL2.nl 
-test/Midori/d2/TwoSbox_3stageL2.nl 
-test/Midori/d2/Midori_Sbox_4stageL2.nl 
 test/prince/d2/FourSboxes_4stageL2.nl 
-test/prince/d2/PRINCE_Sbox_Inverse_4stageL2.nl 
-test/prince/d2/PRINCE_Sbox_Inverse_6stageL2.nl 
