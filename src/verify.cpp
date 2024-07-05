@@ -116,6 +116,9 @@ po::options_description build_argument_parser(
     ("debuginfo", po::value<bool>(&cfg->DEBUG_INFO)->default_value(false),
         "Show intermediate information during verification")
 
+    ("notions", po::value<unsigned int>(&cfg->VERIFY_NOTION)->default_value(3),
+            "The notions to verify. 0: standard probing security; 1: glitch-extended probing security; 2: uniformity; >=3: all above security notions")
+    
     ;
 
     return all;
@@ -303,9 +306,9 @@ int main (int argc, char * argv[]) {
     /* Define order of security (based on minimal sharing) */
     order = inputs[minimal].size() - 1;
 
-    check_Security("standard", model, inputs, cfg, order);
-    check_Security("robust", model, inputs, cfg, order);
-    check_Security("uniformity", model, inputs, cfg, order);
+    if(cfg.VERIFY_NOTION >= 3 || cfg.VERIFY_NOTION == 0) check_Security("standard", model, inputs, cfg, order);
+    if(cfg.VERIFY_NOTION >= 3 || cfg.VERIFY_NOTION == 1) check_Security("robust", model, inputs, cfg, order);
+    if(cfg.VERIFY_NOTION >= 3 || cfg.VERIFY_NOTION == 2) check_Security("uniformity", model, inputs, cfg, order);
 
     if (cfg.COUNT_NODES) {
         probes = Silver::count_BddNode(model, inputs, order, true);

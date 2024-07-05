@@ -40,6 +40,9 @@ size_t       MEMORY;
 /* Enable (true) / disable (false) detailed test reporting */
 int         VERBOSE;
 
+/* The notions to verify. 0: standard probing security; 1: glitch-extended probing security; 2: uniformity; >=3: all above security notions */
+unsigned int			VERIFY_NOTION;
+
 /* Enable (true) / disable (false) verilog design parsing */
 bool         PARSE_VERILOG;
 bool		 INFO;
