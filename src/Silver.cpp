@@ -129,24 +129,28 @@ bool Silver::useFresh(Circuit& model) {
         }
         if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
             use_fresh = true;
+            break;
         }
     }
     std::map<int, std::vector<Node>> sharedOutputs;
-    for (auto node = vs.second; node != vs.first; node--) {
+    for (auto node = vs.first; node != vs.second; node++) {
+        //auto type = model[*node].getType();
         if (model[*node].getType() == "out") {
             sharedOutputs[model[*node].getSharing().first].push_back(*node);
             //std::cout << *node << std::endl;
         }
-        else 
-            break;
+        /*else 
+            break;*/
     }
-    int minimal;
+    int minimal=0;
     /* Find smallest sharing */
     for (int index = 0; index < sharedOutputs.size(); index++) {
         minimal = (sharedOutputs[index].size() < sharedOutputs[minimal].size()) ? index : minimal;
     }
 
-    return (minimal > 2) && use_fresh;
+    int numberOfOutputShares = sharedOutputs[minimal].size();
+
+    return (numberOfOutputShares > 2) && use_fresh;
 }
 
 /* Circuit elaboration */

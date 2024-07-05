@@ -215,7 +215,10 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
         /* Standard uniformity check */
         bool uniform;
         std::chrono::time_point<std::chrono::high_resolution_clock> begin = std::chrono::high_resolution_clock::now();
-        if (Silver::useFresh(model) && cfg.USE_RULE == 1) uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
+        if (Silver::useFresh(model) && cfg.USE_RULE == 1) {
+            //std::cout << "great!" << std::endl;
+            uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
+        }
         else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
 
         // uniform = Silver::check_Uniform3(model);
