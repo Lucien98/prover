@@ -48,6 +48,7 @@ bool         PARSE_VERILOG;
 bool		 INFO;
 int		 VARORDER;
 int		 TIMEOUT;
+uint		 m_Uniform;
 bool		 COUNT_NODES;
 bool		 USE_RULE;
 bool		 USE_SUBSET;

@@ -119,6 +119,9 @@ po::options_description build_argument_parser(
     ("notions", po::value<unsigned int>(&cfg->VERIFY_NOTION)->default_value(3),
             "The notions to verify. 0: standard probing security; 1: glitch-extended probing security; 2: uniformity; >=3: all above security notions")
     
+    ("uniform", po::value<unsigned int>(&cfg->m_Uniform)->default_value(3),
+            "The method to check uniformity. 0: silver; 1: prover; 2: silver but and lemma; >=3: let prover decide")
+
     ;
 
     return all;
@@ -215,11 +218,22 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
         /* Standard uniformity check */
         bool uniform;
         std::chrono::time_point<std::chrono::high_resolution_clock> begin = std::chrono::high_resolution_clock::now();
-        if (Silver::useFresh(model) && cfg.USE_RULE == 1) {
-            //std::cout << "great!" << std::endl;
+        if (cfg.m_Uniform >= 3) {
+            if (Silver::useFresh(model) && cfg.USE_RULE == 1) {
+                std::cout << "great!" << std::endl;
+                uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
+            }
+            else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+        }
+        else if (cfg.m_Uniform == 0) {
+            uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+        }
+        else if (cfg.m_Uniform == 1) {
             uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
         }
-        else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+        else if (cfg.m_Uniform == 2) {
+            uniform = Silver::check_Uniform3(model);
+        }
 
         // uniform = Silver::check_Uniform3(model);
         if (cfg.VERBOSE == 0) {
