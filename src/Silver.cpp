@@ -124,13 +124,16 @@ bool Silver::useFresh(Circuit& model) {
         boost::adjacency_list<>::vertex_iterator> vs = boost::vertices(model);
     bool use_fresh = false;
     for (auto node = vs.first; node != vs.second; node++) {
-        if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
+        if (model[*node].getType() == "out" && model[*node].getPerfectM()->size() != 0) {
+            use_fresh = true;
+        }
+        /*if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
             use_fresh = false;
         }
         if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
             use_fresh = true;
             break;
-        }
+        }*/
     }
     std::map<int, std::vector<Node>> sharedOutputs;
     for (auto node = vs.first; node != vs.second; node++) {
@@ -1710,12 +1713,13 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
                         // if ((abs(p - varcount + hw) > DOUBLE_COMPARE_THRESHOLD)) return false;
                         observation ^= model[reduced[elem]].getFunction();
                         hw += 1;
-                        p = mtbdd_satcountln(observation.GetBDD(), varcount);
-                        
-                        //printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
-                        if ((abs(p - varcount + 1) > DOUBLE_COMPARE_THRESHOLD)) return false;
                     }
                 }
+                sylvan_nodecount(observation.GetBDD());
+                p = mtbdd_satcountln(observation.GetBDD(), varcount);
+                
+                //printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
+                if ((abs(p - varcount + 1) > DOUBLE_COMPARE_THRESHOLD)) return false;
                 // printf("robdd\n");
                 // p = mtbdd_satcountln(observation.GetBDD(), varcount);
                 // printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
