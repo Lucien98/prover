@@ -220,7 +220,7 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
         std::chrono::time_point<std::chrono::high_resolution_clock> begin = std::chrono::high_resolution_clock::now();
         if (cfg.m_Uniform >= 3) {
             if (Silver::useFresh(model) && cfg.USE_RULE == 1) {
-                std::cout << "great!" << std::endl;
+                //std::cout << "great!" << std::endl;
                 uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
             }
             else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
@@ -252,6 +252,43 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
     lace_exit();
 
 }
+
+int CountFresh(Circuit& model) {
+    std::pair<boost::adjacency_list<>::vertex_iterator,
+        boost::adjacency_list<>::vertex_iterator> vs = boost::vertices(model);
+    int count = 0;
+    for (auto node = vs.first; node != vs.second; node++) {
+        //if (model[*node].getType() != "ref" && model[*node].getType() != "in") {
+        //    use_fresh = false;
+        //}
+        if (model[*node].getType() == "ref" && out_degree(*node, model) != 0) {
+            //use_fresh = true;
+            //break;
+            count++;
+        }
+    }
+    //std::map<int, std::vector<Node>> sharedOutputs;
+    //for (auto node = vs.first; node != vs.second; node++) {
+    //    //auto type = model[*node].getType();
+    //    if (model[*node].getType() == "out") {
+    //        sharedOutputs[model[*node].getSharing().first].push_back(*node);
+    //        //std::cout << *node << std::endl;
+    //    }
+    //    /*else
+    //        break;*/
+    //}
+    //int minimal = 0;
+    ///* Find smallest sharing */
+    //for (int index = 0; index < sharedOutputs.size(); index++) {
+    //    minimal = (sharedOutputs[index].size() < sharedOutputs[minimal].size()) ? index : minimal;
+    //}
+
+    //int numberOfOutputShares = sharedOutputs[minimal].size();
+
+    return count;
+}
+
+
 
 int main (int argc, char * argv[]) {
     //test();
@@ -306,7 +343,8 @@ int main (int argc, char * argv[]) {
     model = Silver::parse(dut, inputs);
     if (cfg.INFO) {
         std::vector<Node> positions = Silver::get_nodes_of_types(model, { "out", "reg" }) ;
-        printf("%d, %d, %d, %d\n", inputs.size(), inputs[0].size(), num_vertices(model), positions.size());
+        int num_fresh = CountFresh(model);
+        printf("%d, %d, %d, %d, %d\n", inputs.size(), inputs[0].size(), num_fresh, num_vertices(model), positions.size());
         exit(0);
     }
     double t1;

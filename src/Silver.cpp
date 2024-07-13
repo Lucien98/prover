@@ -341,18 +341,26 @@ Silver::check_Uniform(Circuit& model, std::chrono::time_point<std::chrono::high_
 
         std::vector<std::vector<Bdd>> intra(shares.size());
         for (int idx = 0; idx < shares.size(); idx++) {
+            intra[idx].push_back(sylvan::sylvan_false);
+            //printf("%d:: ", idx);
             for (int comb = 1; comb < ((1 << shares[idx].size()) - 1); comb++) {
                 intra[idx].push_back(sylvan::sylvan_false);
+                //printf("%d: ", comb);
                 for (int elem = 0; elem < shares[idx].size(); elem++) {
-                    if (comb & (1 << elem)) intra[idx].back() ^= model[shares[idx][elem]].getFunction();
+                    if (comb & (1 << elem)) {
+                        intra[idx].back() ^= model[shares[idx][elem]].getFunction();
+                        //printf("%d, ", shares[idx][elem]);
+                    }
                 }
                 if (abs(mtbdd_satcountln(intra[idx].back().GetBDD(), varcount) - varcount + 1) > DOUBLE_COMPARE_THRESHOLD) return false;
             }
+            //printf("\n");
         }
 
         return inter_vector_combinations_xor(intra, 0, Bdd::bddZero(), varcount, begin, timeout);
     }
 }
+
 bool
 Silver::check_Uniform3(Circuit& model)
 {
@@ -1632,14 +1640,19 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
 
     if (offset < intra.size()) {
         bool balanced = true;
-        for (int idx = 0; idx < intra[offset].size() && balanced; idx++)
+        for (int idx = 0; idx < intra[offset].size() && balanced; idx++){
+            //printf("%d, ", idx);
             balanced &= inter_vector_combinations_xor(intra, offset + 1, combination ^ intra[offset][idx], varcount, begin, timeout);
+        }
+        //printf("\n");
         if (!balanced) return false;
     } else {
         if (elapsedTime(begin) > 60 * timeout) {
             printf("timeout");
             return false;
         }
+        double p = mtbdd_satcountln(combination.GetBDD(), varcount);
+        //printf("%lu, %f\n", combination.GetBDD(), p);
         return (abs(mtbdd_satcountln(combination.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
     }
 
@@ -1672,20 +1685,43 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
         }
         //printf("%d ", combination.size());
         std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
+        int n_remain = reduced.size();
         // printf("%d\n", reduced.size());
-        if (reduced.size() == 0) {
-            //printf("red\n");
+        if (n_remain == 0) {
+            // printf("red\n");
             return true;
         }
         else {
-            Bdd observation = sylvan::sylvan_true;
-            int hw = 0;
-            for (int elem = 0; elem < reduced.size(); elem++){
-                observation &= model[reduced[elem]].getFunction();
-                hw += 1;
+            for (int comb = 0; comb < (1 << n_remain) - 1; ++comb)
+            {
+                //printf("%d\n", comb);
+                Bdd observation = sylvan::sylvan_false;
+                // Bdd observation = sylvan::sylvan_true;
+                int hw = 0;
+                double p = 0;
+                for (int elem = n_remain - 1; elem >= 0; elem--){
+                    if (comb & (1 << elem)) {
+                        //printf("%d, ", reduced[elem]);
+                        // observation &= model[reduced[elem]].getFunction();
+                        // hw += 1;
+                        // p = mtbdd_satcountln(observation.GetBDD(), varcount);
+                        
+                        // printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);                
+                        // if ((abs(p - varcount + hw) > DOUBLE_COMPARE_THRESHOLD)) return false;
+                        observation ^= model[reduced[elem]].getFunction();
+                        hw += 1;
+                        p = mtbdd_satcountln(observation.GetBDD(), varcount);
+                        
+                        //printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
+                        if ((abs(p - varcount + 1) > DOUBLE_COMPARE_THRESHOLD)) return false;
+                    }
+                }
+                // printf("robdd\n");
+                // p = mtbdd_satcountln(observation.GetBDD(), varcount);
+                // printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
+                //printf("\n\n");
             }
-            //printf("robdd\n");
-            return (abs(mtbdd_satcountln(observation.GetBDD(), varcount) - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
+            return true;//(abs(p - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
         }
     }
 
