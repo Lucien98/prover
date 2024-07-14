@@ -1691,7 +1691,11 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
         //printf("%d ", combination.size());
         std::vector<uint32_t> reduced = simplify_ExtendedProbes(model, combination);
         int n_remain = reduced.size();
-        // printf("%d\n", reduced.size());
+        // printf("n_remain = %d\n", reduced.size());
+        if (n_remain > 31)
+        {
+            n_remain = 31;
+        }
         if (n_remain == 0) {
             // printf("red\n");
             return true;
@@ -1700,13 +1704,20 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
             for (int comb = 1; comb < (1 << n_remain) - 1; ++comb)
             {
                 // printf("%d\n", comb);
+                if ((comb >> 10) == 0)
+                {
+                    if (elapsedTime(begin) > timeout*60) {
+                        printf("Time out!");
+                        return false;
+                    }
+                }
                 Bdd observation = sylvan::sylvan_false;
                 // Bdd observation = sylvan::sylvan_true;
                 int hw = 0;
                 double p = 0;
                 for (int elem = n_remain - 1; elem >= 0; elem--){
                     if (comb & (1 << elem)) {
-                        //printf("%d, ", reduced[elem]);
+                        // printf("%d, ", reduced[elem]);
                         // observation &= model[reduced[elem]].getFunction();
                         // hw += 1;
                         // p = mtbdd_satcountln(observation.GetBDD(), varcount);
@@ -1726,6 +1737,11 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
                 // p = mtbdd_satcountln(observation.GetBDD(), varcount);
                 // printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
                 //printf("\n\n");
+            }
+            if (n_remain == 31)
+            {
+                printf("int overflow");
+                return false;
             }
             return true;//(abs(p - varcount + hw) < DOUBLE_COMPARE_THRESHOLD);
         }
