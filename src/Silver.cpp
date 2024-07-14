@@ -1644,10 +1644,10 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
     if (offset < intra.size()) {
         bool balanced = true;
         for (int idx = 0; idx < intra[offset].size() && balanced; idx++){
-            //printf("%d, ", idx);
+            // printf("%d, ", idx);
             balanced &= inter_vector_combinations_xor(intra, offset + 1, combination ^ intra[offset][idx], varcount, begin, timeout);
         }
-        //printf("\n");
+        // printf("\n");
         if (!balanced) return false;
     } else {
         if (elapsedTime(begin) > 60 * timeout) {
@@ -1655,7 +1655,9 @@ Silver::inter_vector_combinations_xor(const std::vector<std::vector<Bdd>> &intra
             return false;
         }
         double p = mtbdd_satcountln(combination.GetBDD(), varcount);
-        //printf("%lu, %f\n", combination.GetBDD(), p);
+        // printf("%d, %f\n", varcount, p);
+        // exclude the all zero case, this is dangerous
+        if (p == -1) return true;
         return (abs(mtbdd_satcountln(combination.GetBDD(), varcount) - varcount + 1) < DOUBLE_COMPARE_THRESHOLD);
     }
 
@@ -1695,9 +1697,9 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
             return true;
         }
         else {
-            for (int comb = 0; comb < (1 << n_remain) - 1; ++comb)
+            for (int comb = 1; comb < (1 << n_remain) - 1; ++comb)
             {
-                //printf("%d\n", comb);
+                // printf("%d\n", comb);
                 Bdd observation = sylvan::sylvan_false;
                 // Bdd observation = sylvan::sylvan_true;
                 int hw = 0;
@@ -1718,7 +1720,7 @@ Silver::inter_vector_combinations_xor1(Circuit& model, const std::vector< std::v
                 sylvan_nodecount(observation.GetBDD());
                 p = mtbdd_satcountln(observation.GetBDD(), varcount);
                 
-                //printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
+                // printf("%f, %ld, %d, %d\n", p, varcount, hw, varcount - hw);
                 if ((abs(p - varcount + 1) > DOUBLE_COMPARE_THRESHOLD)) return false;
                 // printf("robdd\n");
                 // p = mtbdd_satcountln(observation.GetBDD(), varcount);
