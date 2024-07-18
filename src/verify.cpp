@@ -223,7 +223,11 @@ void check_Security(std::string notion, Circuit model, std::map<int, Probes> inp
                 //std::cout << "great!" << std::endl;
                 uniform = Silver::check_Uniform2(model, begin, cfg.TIMEOUT);
             }
-            else uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+            else {
+                // std::cout << std::endl;
+                uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
+            }
+
         }
         else if (cfg.m_Uniform == 0) {
             uniform = Silver::check_Uniform(model, begin, cfg.TIMEOUT);
