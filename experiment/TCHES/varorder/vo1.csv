@@ -1,30 +1,30 @@
-test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl,0.541640,0.502980,1,"4,8",5.322683,1,"4,8",0.002322,0
-test/aes/cms/aes_sbox_cms1.nl,0.531941,0.465030,1,"8,16",Time out!1207.995478,0,"858",0.079807,1
-test/aes/dom/aes_sbox_dom1.nl,0.362519,0.312414,1,"8,16",665.234629,1,"8,16",0.053857,1
-test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl,0.300278,0.473026,1,"4,8",4.479819,1,"4,8",0.431996,0
-test/aes/TI/inversion_TI.nl,0.406704,0.405277,1,"8,16",Time out!1201.049796,0,"745",timeout1200.003902,0
-test/prince/d1/PRINCESboxInv_NF.nl,0.045662,0.009980,1,"4,8",0.003722,1,"4,8",0.000508,0
-test/prince/d1/PRINCESbox_NF.nl,0.046668,0.007930,1,"4,8",0.003644,1,"4,8",0.000729,0
-test/prince/d1/prince_sbox_dusan_CMS1.nl,0.047160,0.010174,1,"4,8",0.480108,1,"4,8",0.000662,1
-test/prince/d1/prince_sbox_TI1.nl,0.042431,0.007264,1,"1,42",0.038749,1,"17,54",0.073953,1
-test/prince/d2/sbox/PRINCE_Sbox.nl,0.085241,147.089758,2,"4,8,12",Time out!1200.024540,1,"949,1248",0.039204,1
-test/prince/d2/sbox/TwoSboxes.nl,0.165636,3380.346093,2,"8,16,24",Time out!1200.119750,1,"1263,1714",185.847625,1
-test/present/sharedSbox_non-uniform.nl,0.046151,0.005616,0,"138",0.013062,0,"150",0.007167,0
-test/present/sharedSbox_uniform1.nl,0.049273,0.011858,1,"1,122",0.022692,1,"56,108",0.007309,1
-test/present/sharedSbox_uniform2.nl,0.053675,0.037722,1,"1,230",0.023464,1,"130,199",0.006653,1
-test/present/present_sbox_nf1.nl,0.059355,0.006772,1,"4,8",0.004664,1,"4,8",0.001205,1
-test/keccak/NF/Chi_NoFresh.nl,0.034802,0.008502,1,"5,10",0.009991,1,"5,10",0.004711,1
-test/keccak/dom/keccak_sbox1_nf.nl,0.030922,0.011328,1,"5,10",0.007568,1,"5,10",0.002067,0
-test/keccak/dom/keccak_sbox1.nl,0.036164,0.009366,1,"5,10",0.010503,1,"5,10",0.000165,1
-test/keccak/dom/keccak_sbox2.nl,0.052249,1.267937,2,"5,10,15",6.409826,2,"5,10,15",0.446627,1
-test/keccak/dom/keccak_sbox3.nl,0.053965,963.013196,3,"5,10,15,20",Time out!1200.039567,2,"219,309,443",48.371061,1
-test/keccak/low-latency/1/keccak_sbox.nl,0.026696,0.012116,1,"1,2",0.011262,1,"1,2",0.000123,0
-test/keccak/low-latency/2/keccak_sbox.nl,0.041180,0.420193,2,"1,2,3",1.292146,2,"1,2,3",0.000249,0
-test/keccak/low-latency/3/keccak_sbox.nl,0.051201,144.597145,3,"1,2,3,4",748.134282,3,"1,2,3,4",0.000424,0
-test/Midori/d1/MidoriSbox.nl,0.048019,0.007601,1,"4,8",0.003105,1,"4,8",0.000603,1
-test/Midori/d2/Midori_Sbox.nl,0.080643,117.113669,2,"4,8,12",Time out!1200.014899,1,"901,1186",0.033191,1
-test/Midori/d2/TwoSboxes.nl,0.168631,2373.717478,2,"8,16,24",Time out!1200.228243,1,"1107,1573",139.196903,1
-test/skinny/d1/skinny_sbox8_CMS1.nl,0.045892,0.029086,1,"8,16",0.105226,1,"8,16",0.085979,1
-test/skinny/d1/skinny_sbox8_TI1.nl,0.891307,0.563026,1,"1,203",3.916705,1,"37,197",213.990479,1
-test/skinny/d2/SKINNY_SBOX.nl,0.064979,34.785800,2,"4,8,12",Time out!1200.174713,1,"600,774",0.037188,1
-test/skinny/d2/TwoSboxes.nl,0.116296,905.108661,2,"8,16,24",Time out!1200.865976,1,"699,1315",150.184710,1
+test/aes/1Fresh/AES_GF256_Inversion_1fresh.nl,0.541640,0.502980,1,"4,8"
+test/aes/cms/aes_sbox_cms1.nl,0.531941,0.465030,1,"8,16"
+test/aes/dom/aes_sbox_dom1.nl,0.362519,0.312414,1,"8,16"
+test/aes/NoFresh/AES_GF256_Inversion_NOfresh.nl,0.300278,0.473026,1,"4,8"
+test/aes/TI/inversion_TI.nl,0.406704,0.405277,1,"8,16"
+test/prince/d1/PRINCESboxInv_NF.nl,0.045662,0.009980,1,"4,8"
+test/prince/d1/PRINCESbox_NF.nl,0.046668,0.007930,1,"4,8"
+test/prince/d1/prince_sbox_dusan_CMS1.nl,0.047160,0.010174,1,"4,8"
+test/prince/d1/prince_sbox_TI1.nl,0.042431,0.007264,1,"1,42"
+test/prince/d2/sbox/PRINCE_Sbox.nl,0.085241,147.089758,2,"4,8,12"
+test/prince/d2/sbox/TwoSboxes.nl,0.165636,3380.346093,2,"8,16,24"
+test/present/sharedSbox_non-uniform.nl,0.046151,0.005616,0,"138"
+test/present/sharedSbox_uniform1.nl,0.049273,0.011858,1,"1,122"
+test/present/sharedSbox_uniform2.nl,0.053675,0.037722,1,"1,230"
+test/present/present_sbox_nf1.nl,0.059355,0.006772,1,"4,8"
+test/keccak/NF/Chi_NoFresh.nl,0.034802,0.008502,1,"5,10"
+test/keccak/dom/keccak_sbox1_nf.nl,0.030922,0.011328,1,"5,10"
+test/keccak/dom/keccak_sbox1.nl,0.036164,0.009366,1,"5,10"
+test/keccak/dom/keccak_sbox2.nl,0.052249,1.267937,2,"5,10,15"
+test/keccak/dom/keccak_sbox3.nl,0.053965,963.013196,3,"5,10,15,20"
+test/keccak/low-latency/1/keccak_sbox.nl,0.026696,0.012116,1,"1,2"
+test/keccak/low-latency/2/keccak_sbox.nl,0.041180,0.420193,2,"1,2,3"
+test/keccak/low-latency/3/keccak_sbox.nl,0.051201,144.597145,3,"1,2,3,4"
+test/Midori/d1/MidoriSbox.nl,0.048019,0.007601,1,"4,8"
+test/Midori/d2/Midori_Sbox.nl,0.080643,117.113669,2,"4,8,12"
+test/Midori/d2/TwoSboxes.nl,0.168631,2373.717478,2,"8,16,24"
+test/skinny/d1/skinny_sbox8_CMS1.nl,0.045892,0.029086,1,"8,16"
+test/skinny/d1/skinny_sbox8_TI1.nl,0.891307,0.563026,1,"1,203"
+test/skinny/d2/SKINNY_SBOX.nl,0.064979,34.785800,2,"4,8,12"
+test/skinny/d2/TwoSboxes.nl,0.116296,905.108661,2,"8,16,24"
