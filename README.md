@@ -88,7 +88,7 @@ Copyright (c) 2024, Feng Zhou. All rights reserved.
   - The computation of auxiliary data structure in `NodeContext.hpp`
   - `Reduce_Probing` and `check_Uniformity1/2/3` in `Silver.cpp`
 
-Please see LICENSE-PROVER for further license instructions.
+Please see LICENSE_PROVER for further license instructions.
 
 Here down below is the original README.md of SILVER
 
