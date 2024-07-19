@@ -10,3 +10,7 @@ Compared to the submission for TOSC, we include the improvements on standard pro
   - Keccak_sbox_DOM_NF$_1$
 
 
+The folder `verify` contains the original data of SILVER (standard probing security check and glitch-extended probing security check) in Table 4: Comparison between SILVER and Prover.
+
+It seems the timeout is not that right? For glitch-extended probing security, we seemed to forget to rerun the experiments with 24 hour limit (while when we replace data, we changed the `360` to `864`).
+
