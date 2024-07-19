@@ -1,6 +1,0 @@
-test/prince/d2/sbox/PRINCE_Sbox.nl
-test/prince/d2/sbox/TwoSboxes.nl
-test/keccak/dom/keccak_sbox3.nl
-test/keccak/low-latency/3/keccak_sbox.nl
-test/Midori/d2/Midori_Sbox.nl
-test/Midori/d2/TwoSboxes.nl
