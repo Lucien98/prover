@@ -21,5 +21,5 @@ It seems the timeout is not that right? For glitch-extended probing security, we
 
 **Prover**
 
-The folder `verify` contains the original data of `Prover` (standard probing security check and glitch-extended probing security check) in Table 4: Comparison between SILVER and Prover.
+The folder `prover` contains the original data of `Prover` (standard probing security check and glitch-extended probing security check) in Table 4: Comparison between SILVER and Prover.
 

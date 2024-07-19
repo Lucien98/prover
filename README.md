@@ -3,33 +3,92 @@ Prover (**Pro**bing Security **Ver**ifier) is a tool based on [SILVER](https://g
 
 
 
-## Command line options for Prover
+## Addional Commandline Options for Prover
 
 ```
 Addional arguments for Prover:
-      --improve_varorder arg (=1)           Use improved var ordering.
-      --count_node arg (=0)                 count the number of internal nodes in 
-                                            functions.
+  --varorder arg (=1)                   Var ordering. 1 is recommended.
+                                        0 : original, shares as bdd variable. 
+                                        1 : secrets as bdd variables. 
+                                        2 : shares as bdd variables
+  --timeout arg (=525600)               Exit if exceeding the time limit (unit 
+                                        : minute). The default timeout is 1 
+                                        year.
+  --count_node arg (=0)                 Count the number of internal nodes in 
+                                        functions.
+  --info arg (=0)                       Gives information about the test bench.
+  --userule arg (=1)                    Check glitch-extended probing security 
+                                        using reductaion rules.
+  --usesubset arg (=1)                  Enabling the use of subset strategy.
+  --onlygp arg (=0)                     Only check glitch-extended probing 
+                                        security (for the purpose of comparing 
+                                        Prover and SILVER).
+  --debuginfo arg (=0)                  Show intermediate information during 
+                                        verification
+  --notions arg (=3)                    The notions to verify. 0: standard 
+                                        probing security; 1: glitch-extended 
+                                        probing security; 2: uniformity; >=3: 
+                                        all above security notions
+  --uniform arg (=3)                    The method to check uniformity. 0: 
+                                        silver; 1: Algorithm 3 in the paper; 2: silver but and 
+                                        lemma; >=3: let prover decide
 ```
 
-### run the experiments
 
-To count node with original variable order:
+  - `verbose`: set the verbose level
+    - 0: output as csv format
+    - 1: The same style as SILVER
+    - 2: With some debug information
+  - `varorder`: The numbering is different from the paper. When `varoder` is set to 1, `Prover` use Ordering 2 in the paper. When `varoder` is set to 2, `Prover` use Ordering 1 in the paper. When `varorder` is set to 0, the original ordering of SILVER is used.
+  - `timeout`: This is not so useful. `Prover` may not exit after a duration of timeout if the size of observations size are all less than 10.
+  - `count_node`: It is not a interesting function, but i do not want to delete it.
+  - `info`: This option is introduce to generate Table 2 in the paper.
+  - `userule`: Whether to use the reductaion rules.
+  - `usesubset`: Whether to use the subset strategy.
+  - `onlygp`: Useless option.
+  - `debuginfo`: Useless option.
+  - `notions`: Identify which security notion to check: 
+    - 0: standard probing security; 
+    - 1: glitch-extended probing security; 
+    - 2: uniformity; 
+    - 3 or greater: all above security notions
+  - `uniform`: The method to check uniformity
+    - 0: the method from SILVER 
+    - 1: Algorithm 3 in the paper
+    - 2: the method from SILVER but with `and` operation instead of `xor` operation. It is slower than method 0.
+    - 3: let Prover decide
 
-    ./bin/verify --count_node 1 --improve_varorder 0 --verbose 0
 
-To count node with improved variable order:
-
-    ./bin/verify --count_node 1 --improve_varorder 1 --verbose 0
+### How to use `Prover`
 
 To use original SILVER to verify:
 
-    ./bin/verify --improve_varorder 0 --verbose 0
+    ./bin/verify --varorder 0 --userule 0 --insfile /path/to/your/netlist/file
 
-To use improved SILVER to verify:
+The commandline options are set to use Prover by default.
+To use `Prover` to verify: 
 
-    ./bin/verify --improve_varorder 1 --verbose 0
+    ./bin/verify --insfile --insfile /path/to/your/netlist/file
 
+
+To verify only standard probing security, add `--notion 0`.
+
+To verify only glitch-extended probing security, add `--notion 1`.
+
+To verify only uniformity, add `--notion 2`.
+
+### Attention
+
+If you want to check NI, SNI, or, PINI properties, please use original SILVER. 
+
+
+### Licensing about Prover
+Copyright (c) 2024, Feng Zhou. All rights reserved.
+
+  - The computation of auxiliary data structure in `NodeContext.hpp`
+  - `Reduce_Probing` and `check_Uniformity1/2/3` in `Silver.cpp`
+
+Please see LICENSE-PROVER for further license instructions.
 
 Here down below is the original README.md of SILVER
 

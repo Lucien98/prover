@@ -24,6 +24,33 @@
  * Please see LICENSE and README for license and further instructions.
  */
 
+/*
+ * -----------------------------------------------------------------
+ * COMPANY : University of Chinese Academy of Sciences
+ * AUTHOR  : Feng Zhou (zhoufeng2021@iscas.ac.cn)
+ * DOCUMENT:  
+ *           
+ * -----------------------------------------------------------------
+ *
+ * Copyright (c) 2024, Feng Zhou
+ *
+ * All rights reserved. For the part of check_Uniform1/2/3 and reduce_Probing.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTERS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Please see LICENSE_PROVER and README for license and further instructions.
+ */
+
+
 #include <util.hpp>
 #include <Silver.hpp>
 
