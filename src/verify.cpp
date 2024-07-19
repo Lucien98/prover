@@ -110,8 +110,8 @@ po::options_description build_argument_parser(
 
     ("onlygp", po::value<bool>(&cfg->ONLY_GP)->default_value(false),
         "Only check glitch-extended probing security (for the purpose of comparing Prover and SILVER).")
-    ("prover", po::value<bool>(&cfg->PROVER)->default_value(true),
-        "Use Prover rather than SILVER.")
+    // ("prover", po::value<bool>(&cfg->PROVER)->default_value(true),
+    //     "Use Prover rather than SILVER.")
 
     ("debuginfo", po::value<bool>(&cfg->DEBUG_INFO)->default_value(false),
         "Show intermediate information during verification")
