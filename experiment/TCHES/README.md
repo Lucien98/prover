@@ -4,9 +4,9 @@ This folder contains the original data for paper3 submission for TCHES 2024_4, w
 ### Changes
 Compared to the submission for TOSC, we include the improvements on standard probing security check and uniformity check, as well as three more benchmarks.
 
-  - AES_sbox_TI$_1$
-  - Keccak_sbox_NF$_1$
-  - Keccak_sbox_DOM_NF$_1$
+  - AES_sbox_TI $_1$
+  - Keccak_sbox_NF $_1$
+  - Keccak_sbox_DOM_NF $_1$
 
 ### Table 3
 The folder `varorder` contains the original data for Table 3: Comparison between different variables ordering.

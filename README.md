@@ -90,6 +90,20 @@ Copyright (c) 2024, Feng Zhou. All rights reserved.
 
 Please see LICENSE_PROVER for further license instructions.
 
+## Benchmarks
+
+The original Verilog Benchmarks are available at the following three repository:
+
+  - [SynNullFresh2](https://github.com/Lucien98/SynNullFresh2)<sup><a href="#ref1">[1]</a></sup>
+  - [SynLowRandomMasking](https://github.com/Lucien98/SynLowRandomMasking)<sup><a href="#ref2">[2]</a></sup>
+  - [SynOthers](https://github.com/Lucien98/SynOthers)<sup><a href="#ref3">[3]</a></sup>
+## Reference
+1. <p><a name = "ref1"></a>SynNullFresh2.https://github.com/Lucien98/SynNullFresh2</p>
+2. <p><a name = "ref2"></a>SynLowRandomMasking.https://github.com/Lucien98/SynLowRandomMasking</p>
+3. <p><a name = "ref3"></a>SynOthers.https://github.com/Lucien98/SynOthers</p>
+
+
+
 Here down below is the original README.md of SILVER
 
 ---
