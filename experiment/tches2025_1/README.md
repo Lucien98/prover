@@ -81,7 +81,7 @@ lucien@ubuntu:/mnt/hgfs/VMShared/SILVER/SILVER$ ./bin/verify --insfile vlog/pres
 
 We can see that the leaky probes in standard probing model are at line `137,139,140,141,142,144,145,146,147`+1 and the leaky probes in glitch-extended probing model are at line `149,150,151,153,154,155,157,158,159`+1.
 
-In fact, the leaky positions are identical under these two models. Leakage only exists on three msb of the output shares, i.e. the shares of lsb of $\mathcal F$ is not leaky while the shares of the rest three bits of $\mathcal F$ is leaky.
+In fact, the leaky positions are identical under these two models. Leakage only exists on all three output shares of three msb, i.e. the shares of lsb of $\mathcal F$ is not leaky while the shares of the rest three bits of $\mathcal F$ is leaky.
 
 
 | id(std) | at line | id(rob) | at line |           |
@@ -109,7 +109,7 @@ CocoAlma reports that `_15_` for the [synthesized file](https://github.com/Lucie
   assign _11_ = \y2.q [1] & \y2.q [0];
 ```
 
-In the paper <a href="#ref1">[1]</a>, `share1[2]` is denoted as $y_2^1$ in Appendix A.
+`share1[2]` is denoted as $y_2^1$ in Appendix A from paper <a href="#ref1">[1]</a>.
 
 $y_2^1=d^2\oplus b^2a^2\oplus b^2a^3\oplus b^3a^2$
 
@@ -138,7 +138,7 @@ $$
 
 **Looking back at the result from Prover**
 
-From the input file to SILVER, [Synthesized Netlist of TINU](https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/2-Synthesized/sharedSbox_non-uniform.v)<sup><a href="#ref2">[2]</a></sup>, we can obtain the following equations hold:
+From the input file to Prover, [Synthesized Netlist of TINU](https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/2-Synthesized/sharedSbox_non-uniform.v)<sup><a href="#ref2">[2]</a></sup>, we can obtain the following equations hold:
 ```
 share2[1] = g2Reg[3] + f1_n11 + 1
 f1_n11 = f1_n9 + f1_n10 + 1
@@ -148,7 +148,7 @@ f1_n8 = g2Reg[0] + g3Reg[0]
 ```
 
 We can know that `g2Reg[3]` is $d^2$, `g3Reg[1]` is $b^3$, `g2Reg[0]` is $a^2$, `g2Reg[1]` is $b^2$, `g3Reg[0]` is $a^3$.
-
+Therefore we can express these variables as follows.
 
 <!-- \[
 	\begin{align*}
@@ -171,14 +171,14 @@ $$
      \end{aligned}
 $$
 
-SILVER and Prover did not report leakage for `f1_n9` = $b^3a^2+1$ but did for `share1[2]`.
+SILVER and Prover did not report leakage for `f1_n9` = $b^3a^2+1$ but did so for `share1[2]`.
 
-So it is a false positive case for cocoalma to report `_15_`  $=b^3a^2$ is insecure.
+So it is a false positive case for CocoAlma to report `_15_`  $=b^3a^2$ is insecure.
 
 However, CocoAlma correctly reports the leakage caused by `share1[2]` in glitch-extended probing model.
 
 ### results of maskVerif
-maskVerif reports `tmp102` (under standard probing model) and `tmp135` (under glitch-extended probing model) to be leaky <sup><a href="#ref3">[3]</a></sup>. In fact, `tmp102` and `tmp135` correspond to line 103 and 153 in the  [Netlist file of TINU](https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/3-Netlist/sharedSbox_non-uniform.nl)<sup><a href="#ref4">[4]</a></sup>. Prover and SILVER did not report it to be leaky so they are false positives.
+maskVerif reports `tmp102` (under standard probing model) and `tmp135` (under glitch-extended probing model) to be leaky <sup><a href="#ref3">[3]</a><a href="#ref10">[10]</a></sup>. In fact, `tmp102` and `tmp135` correspond to line 103 and 153 in the  [Netlist file of TINU](https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/3-Netlist/sharedSbox_non-uniform.nl)<sup><a href="#ref4">[4]</a></sup>. Prover and SILVER did not report it to be leaky so they are false positives.
 
 ## Detailed analysis for $L_2^4$ implementation of PRINCE S-box
 ### results from Prover
@@ -224,7 +224,7 @@ lucien@ubuntu:~/git/prover$ ./bin/verify --insfile test/prince/d2/PRINCE_Sbox_In
 
 ```
 
-From the output, we can see that the leakage reported in the paper is the only leakage of this implementation. For more details about the leakage, please refer to the README of [SynLowRandomMasking](https://github.com/Lucien98/SynLowRandomMasking)<sup><a href="#ref6">[6]</a></sup> and our paper.
+From the output, we can see that the leakage reported in our paper is the only leakage of this implementation. For more details about the leakage, please refer to the README of [SynLowRandomMasking](https://github.com/Lucien98/SynLowRandomMasking)<sup><a href="#ref6">[6]</a></sup> and our paper.
 
 **Leakage under standard probing model**
 
@@ -242,7 +242,7 @@ From the output, we can see that the leakage reported in the paper is the only l
 
 ### results of CocoAlma
 
-One can see the leakge results from \Q294_inst1 and \Q294_inst2, while leakage under standard reported by CocoAlma results from \Q294_inst3. Therefore they are all false positives. 
+One can see the genuine leakge results from \Q294_inst1 and \Q294_inst2, while leakage under standard and glitch-extended probing modles reported by CocoAlma results from \Q294_inst3. Therefore they are both false positives. 
 
 **Leakage under standard probing model reported by CocoAlma**
 ```
@@ -268,7 +268,7 @@ maskVerif reported `tmp415` and `tmp418` (corresponding to line 457 and 458 in t
 ## Reference
 1. <p><a name = "ref1"></a>The First Thorough Side-Channel Hardware Trojan.https://link.springer.com/chapter/10.1007/978-3-319-70694-8_26</p>
 2. <p><a name = "ref2"></a>Synthesized Netlist of TINU.https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/2-Synthesized/sharedSbox_non-uniform.v</p>
-3. <p><a name = "ref3"></a>Results of maskVerif.https://github.com/Lucien98/maskVerif_evaluation/blob/main/experiments/tches/results_ng.txt</p>
+3. <p><a name = "ref3"></a>Results of maskVerif under standard probing model.https://github.com/Lucien98/maskVerif_evaluation/blob/main/experiments/tches/results_ng.txt</p>
 4. <p><a name = "ref4"></a>Netlist file of TINU.https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/3-Netlist/sharedSbox_non-uniform.nl</p>
 5. <p><a name = "ref5"></a>Low_Random_Masking.https://github.com/Chair-for-Security-Engineering/Low_Random_Masking</p>
 6. <p><a name = "ref6"></a>SynLowRandomMasking.https://github.com/Lucien98/SynLowRandomMasking</p>
