@@ -112,7 +112,7 @@ $y_2^1=d^2\oplus b^2a^2\oplus b^2a^3\oplus b^3a^2$
 
 We can infer that `_15_` $=b^3a^2$
 
-\[
+<!-- \[
 	\begin{align*}
 	    &\text{_15_} =b^3a^2\\
 	    &\text{_11_} =b^2a^2\\
@@ -121,6 +121,17 @@ We can infer that `_15_` $=b^3a^2$
 	    &\text{_14_} =(d^2 + b^2a^2) + b^2a^3\\
 	\end{align*}
 \]
+ -->
+
+$$
+	\begin{aligned}
+	    &\text{\\_ 15\\_ }=b^3a^2\\
+ 	    &\text{\\_ 11\\_ }=b^2a^2\\
+	    &\text{\\_ 12\\_ }=d^2 + b^2a^2\\
+	    &\text{\\_ 13\\_ }=b^2a^3\\
+	    &\text{\\_ 14\\_ }=(d^2 + b^2a^2) + b^2a^3\\
+     \end{aligned}
+$$
 
 
 From [Synthesized Netlist of TINU](https://github.com/Lucien98/prover/blob/uniformity/vlog/present/PRESENT_Sbox_TI_non-uniform/2-Synthesized/sharedSbox_non-uniform.v)<sup><a href="#ref2">[2]</a></sup>, we can obtain the following equations hold:
@@ -135,7 +146,7 @@ f1_n8 = g2Reg[0] + g3Reg[0]
 We can know that `g2Reg[3]` is $d^2$, `g3Reg[1]` is $b^3$, `g2Reg[0]` is $a^2$, `g2Reg[1]` is $b^2$, `g3Reg[0]` is $a^3$.
 
 
-\[
+<!-- \[
 	\begin{align*}
 		&\text{f1_n8} =  a^3+a^2 & \\
 		&\text{f1_n10} =  (a^3+a^2)b^2+1 & \\
@@ -144,7 +155,17 @@ We can know that `g2Reg[3]` is $d^2$, `g3Reg[1]` is $b^3$, `g2Reg[0]` is $a^2$, 
 		& \text{share1[2]} = d^2 +b^3a^2+(a^3+a^2)b^2 & \\
 	\end{align*}
 \]
+ -->
 
+$$
+	\begin{aligned}
+		&\text{f1\\_ n8} =  a^3+a^2 & \\
+		&\text{f1\\_ n10} =  (a^3+a^2)b^2+1 & \\
+		&\text{f1\\_ n9} =  b^3a^2+1 & \\
+		&\text{f1\\_ n11} =  b^3a^2+(a^3+a^2)b^2 + 1 & \\
+		&\text{share1[2]} = d^2 +b^3a^2+(a^3+a^2)b^2 & \\
+     \end{aligned}
+$$
 
 SILVER and Prover did not report leakage for `f1_n9` = $b^3a^2+1$ but did for `share1[2]`.
 
