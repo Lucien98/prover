@@ -3,6 +3,6 @@ The paper for `Prover` has been submitted to tosc 2024_4 in 23rd Nov. 2023 and w
 
 This folder contains original data for this submission. 
 
-In this submission, we only improved the verification of glitch-extended probing security of SILVER, while standard probing security and uniformity is improved.
+In this submission, we only improved the verification of glitch-extended probing security of SILVER, while standard probing security and uniformity is not improved.
 
 There are 27 benchmarks in this submission.
