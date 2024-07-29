@@ -68,7 +68,7 @@ To use original SILVER to verify:
 The commandline options are set to use Prover by default.
 To use `Prover` to verify: 
 
-    ./bin/verify --insfile --insfile /path/to/your/netlist/file
+    ./bin/verify --insfile /path/to/your/netlist/file
 
 
 To verify only standard probing security, add `--notion 0`.
@@ -89,6 +89,8 @@ Copyright (c) 2024, Feng Zhou. All rights reserved.
   - `Reduce_Probing` and `check_Uniformity1/2/3` in `Silver.cpp`
 
 Please see LICENSE_PROVER for further license instructions.
+## Publication
+F. Zhou, H. Chen, L. Fan (2024): [Prover - Toward More Efficient Formal Verification of Masking in Probing Model](https://eprint.iacr.org/2024/1202.pdf)
 
 ## Benchmarks
 

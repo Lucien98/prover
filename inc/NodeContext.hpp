@@ -28,7 +28,7 @@
  * -----------------------------------------------------------------
  * COMPANY : University of Chinese Academy of Sciences
  * AUTHOR  : Feng Zhou (zhoufeng2021@iscas.ac.cn)
- * DOCUMENT:  
+ * DOCUMENT: https://eprint.iacr.org/2024/1202.pdf
  *           
  * -----------------------------------------------------------------
  *
@@ -47,7 +47,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Please see LICENSE and README for license and further instructions.
+ * Please see LICENSE_PROVER and README for license and further instructions.
  */
 
 

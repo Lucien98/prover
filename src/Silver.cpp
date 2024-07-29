@@ -28,7 +28,7 @@
  * -----------------------------------------------------------------
  * COMPANY : University of Chinese Academy of Sciences
  * AUTHOR  : Feng Zhou (zhoufeng2021@iscas.ac.cn)
- * DOCUMENT:  
+ * DOCUMENT: https://eprint.iacr.org/2024/1202.pdf
  *           
  * -----------------------------------------------------------------
  *
