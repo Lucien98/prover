@@ -1,0 +1,7 @@
+test/ISW_mult/2shares.nl
+test/ISW_mult/3shares.nl
+test/ISW_mult/4shares.nl
+test/ISW_mult/5shares.nl
+test/refresh_nlogn/2shares.nl
+test/refresh_nlogn/4shares.nl
+test/refresh_nlogn/6shares.nl
